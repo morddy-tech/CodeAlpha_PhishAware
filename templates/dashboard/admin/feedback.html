@@ -1,0 +1,46 @@
+{% extends "dashboard/admin/base_admin.html" %}
+
+{% block admin_title %}Feedback{% endblock %}
+
+{% block admin_content %}
+<div class="filter-bar">
+  <form method="get">
+    <select name="filter" aria-label="Filter feedback">
+      <option value="" {% if not filter_by %}selected{% endif %}>All</option>
+      <option value="unresolved" {% if filter_by == 'unresolved' %}selected{% endif %}>Unresolved</option>
+      <option value="resolved" {% if filter_by == 'resolved' %}selected{% endif %}>Resolved</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+
+{% if items %}
+  <div class="stack">
+    {% for item in items %}
+      <div class="card">
+        <div class="flex-between">
+          <div class="flex" style="gap:var(--space-3);">
+            <span class="badge badge-teal">{{ item.rating }}/5</span>
+            <span class="badge badge-blue">{{ item.get_category_display }}</span>
+            {% if item.resolved %}<span class="badge badge-green">Resolved</span>{% else %}<span class="badge badge-amber">Open</span>{% endif %}
+          </div>
+          <span class="text-xs text-muted">{{ item.created_at|date:"M d, Y H:i" }} · {{ item.user.username }}</span>
+        </div>
+        {% if item.message %}<p class="text-small mt-3 mb-0">{{ item.message }}</p>{% else %}<p class="text-small text-faint mt-3 mb-0">No message.</p>{% endif %}
+        {% if not item.resolved %}
+          <form method="post" action="{% url 'dashboard:admin_feedback_resolve' item.pk %}" class="mt-3" style="margin-top:var(--space-3);">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Mark resolved</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    {% include "includes/svg.html" with name="message-square" %}
+    <h3>No feedback yet</h3>
+    <p>Feedback from learners will appear here.</p>
+  </div>
+{% endif %}
+{% endblock %}

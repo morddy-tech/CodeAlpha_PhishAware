@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <h1 class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}</h1>
+    <p class="text-muted mb-0">Keep learning to detect and defend.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'training:index' %}">Continue training</a>
+</div>
+
+<div class="grid grid-4" style="margin-bottom:var(--space-5);">
+  <div class="stat">
+    <span class="icon">{% include "includes/svg.html" with name="layers" %}</span>
+    <div class="value">{{ modules_completed }}/{{ total_modules }}</div>
+    <div class="label">Modules completed</div>
+  </div>
+  <div class="stat">
+    <span class="icon" style="background:var(--accent-soft);color:var(--accent);">{% include "includes/svg.html" with name="brain" %}</span>
+    <div class="value">{{ modules_passed }}/{{ total_quizzes }}</div>
+    <div class="label">Quizzes passed</div>
+  </div>
+  <div class="stat">
+    <span class="icon">{% include "includes/svg.html" with name="shield-alert" %}</span>
+    <div class="value">{{ scenarios_completed }}/{{ total_scenarios }}</div>
+    <div class="label">Scenarios completed</div>
+  </div>
+  <div class="stat">
+    <span class="icon" style="background:var(--warning-soft);color:var(--warning);">{% include "includes/svg.html" with name="award" %}</span>
+    <div class="value">{{ achievements_count }}</div>
+    <div class="label">Achievements</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="stack">
+    <div class="card">
+      <div class="card-header">
+        <h2>Training progress</h2>
+        <span class="badge badge-blue">{{ total_progress }}%</span>
+      </div>
+      <div class="progress" role="progressbar" aria-valuenow="{{ total_progress }}" aria-valuemin="0" aria-valuemax="100" style="height:14px;">
+        <div class="progress-fill" style="width: {{ total_progress }}%;"></div>
+      </div>
+      <div class="flex-between text-xs text-muted mt-2">
+        <span>Overall across {{ total_modules }} published modules</span>
+        <span>{{ modules_completed }} complete</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Recent activity</h2>
+        <a class="text-small" href="{% url 'progress:overview' %}">View progress →</a>
+      </div>
+      {% if recent_activity %}
+        <ul class="activity-list">
+          {% for event in recent_activity %}
+            <li>
+              <span class="a-icon">{% include "includes/svg.html" with name=event.icon %}</span>
+              <div class="grow">
+                <a href="{{ event.url }}" class="a-title">{{ event.title }}</a>
+                <div class="a-meta">{{ event.detail }} · {{ event.when|timesince }} ago</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">No activity yet. Start with a <a href="{% url 'training:index' %}">training module</a>!</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Recommended next</h2>
+      </div>
+      {% if recommended %}
+        <div class="stack">
+          {% for module in recommended %}
+            <a href="{{ module.get_absolute_url }}" class="flex" style="align-items:flex-start;gap:var(--space-3);">
+              <span class="feature-icon" style="margin:0;">{% include "includes/svg.html" with name="book" %}</span>
+              <span class="grow">
+                <span style="font-weight:600;">{{ module.title }}</span>
+                <span class="text-xs text-muted" style="display:block;">{{ module.estimated_minutes }} min · {{ module.get_difficulty_display }}</span>
+              </span>
+              {% include "includes/svg.html" with name="arrow-right" %}
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-success mb-0">{% include "includes/svg.html" with name="check-circle" %} You've completed all available modules — amazing work!</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card text-center">
+      <h3>Security awareness score</h3>
+      <div class="awareness-ring">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle cx="75" cy="75" r="66" fill="none" stroke="var(--surface-2)" stroke-width="12"/>
+          <circle cx="75" cy="75" r="66" fill="none" stroke="var(--primary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ awareness_score|ring_dash }}"/>
+        </svg>
+        <div class="value">{{ awareness_score }}<span>awareness</span></div>
+      </div>
+      <p class="text-xs text-muted mb-0">Training 40% · Quizzes 35% · Simulations 25%</p>
+    </div>
+
+    <div class="card">
+      <h3>Quick links</h3>
+      <div class="stack">
+        <a class="btn btn-secondary btn-block" href="{% url 'simulations:list' %}">{% include "includes/svg.html" with name="shield-alert" %} Try a simulation</a>
+        <a class="btn btn-secondary btn-block" href="{% url 'quizzes:list' %}">{% include "includes/svg.html" with name="brain" %} Take a quiz</a>
+        <a class="btn btn-secondary btn-block" href="{% url 'progress:achievements' %}">{% include "includes/svg.html" with name="trophy" %} View achievements</a>
+        <a class="btn btn-secondary btn-block" href="{% url 'core:security_tips' %}">{% include "includes/svg.html" with name="key" %} Security tips</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

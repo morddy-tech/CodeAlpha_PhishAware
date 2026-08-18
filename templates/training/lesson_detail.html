@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb" class="text-small text-muted" style="margin-bottom:var(--space-4);">
+  <a href="{% url 'training:index' %}">Training</a> / <a href="{{ module.get_absolute_url }}">{{ module.title }}</a> / {{ lesson.title }}
+</nav>
+
+<div class="container-narrow">
+  <div class="card" style="margin-bottom:var(--space-5);">
+    <div class="flex-between" style="margin-bottom:var(--space-3);">
+      <div>
+        <h1 style="margin-bottom:var(--space-1);">{{ lesson.title }}</h1>
+        <div class="text-xs text-muted">
+          {% include "includes/svg.html" with name="clock" %} {{ lesson.estimated_minutes }} min read
+          {% if completed %}<span class="badge badge-green" style="margin-left:var(--space-2);">Completed</span>{% endif %}
+        </div>
+      </div>
+      <span class="badge badge-blue">{{ module.title }}</span>
+    </div>
+
+    <div class="lesson-content" style="line-height:1.7;">
+      {{ lesson.content|linebreaksbr }}
+    </div>
+
+    <hr class="divider">
+
+    <div class="alert alert-info" role="note">
+      {% include "includes/svg.html" with name="info" %}
+      <div><strong>Security tip:</strong> Read slowly. Phishing succeeds when people rush. If anything here surprises you, revisit the module's other lessons.</div>
+    </div>
+
+    <div class="flex-between" style="margin-top:var(--space-4);">
+      {% if previous %}
+        <a class="btn btn-secondary" href="{% url 'training:lesson_detail' previous.slug %}">{% include "includes/svg.html" with name="arrow-left" %} Previous</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="complete">
+        {% if completed %}
+          <button type="submit" class="btn btn-success" disabled>Completed</button>
+        {% else %}
+          <button type="submit" class="btn btn-primary">Mark complete{% if next_lesson %} &amp; continue{% endif %}</button>
+        {% endif %}
+      </form>
+
+      {% if next_lesson %}
+        <a class="btn btn-secondary" href="{% url 'training:lesson_detail' next_lesson.slug %}">Next {% include "includes/svg.html" with name="arrow-right" %}</a>
+      {% else %}
+        <a class="btn btn-secondary" href="{{ module.get_absolute_url }}">Finish module {% include "includes/svg.html" with name="arrow-right" %}</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if related_quiz %}
+    <div class="card">
+      <div class="flex" style="align-items:flex-start;gap:var(--space-4);">
+        <span class="feature-icon teal" style="margin:0;">{% include "includes/svg.html" with name="brain" %}</span>
+        <div class="grow">
+          <h3 style="margin-bottom:var(--space-1);">Test your knowledge</h3>
+          <p class="text-small text-muted mb-0">Take the related quiz: {{ related_quiz.title }}</p>
+          <a class="btn btn-primary mt-3" href="{% url 'quizzes:detail' related_quiz.pk %}">Start quiz</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

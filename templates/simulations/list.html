@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}Phishing simulations{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <h1 class="mb-0">Interactive simulations</h1>
+    <p class="text-muted mb-0">Spot the red flags in realistic — but completely fictional — phishing scenarios.</p>
+  </div>
+  <span class="badge badge-red">{% include "includes/svg.html" with name="shield-alert" %} Educational only</span>
+</div>
+
+<div class="alert alert-warning" role="note">
+  {% include "includes/svg.html" with name="info" %}
+  <div>These are <strong>simulated exercises</strong> using fictional organizations and domains. No real credentials, payments, or data are ever collected, stored, or transmitted.</div>
+</div>
+
+<div class="filter-bar">
+  <form method="get">
+    <select name="type" aria-label="Scenario type">
+      <option value="">All types</option>
+      {% for value, label in type_choices %}
+        <option value="{{ value }}" {% if scenario_type == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="difficulty" aria-label="Difficulty">
+      <option value="">All difficulties</option>
+      {% for value, label in difficulty_choices %}
+        <option value="{{ value }}" {% if difficulty == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+
+{% if scenarios %}
+  <div class="grid grid-2">
+    {% for scenario in scenarios %}
+      <a href="{{ scenario.get_absolute_url }}" class="card card-hover" style="display:block;">
+        <div class="flex-between">
+          <span class="badge badge-{% if scenario.scenario_type == 'email' %}blue{% elif scenario.scenario_type == 'website' %}red{% elif scenario.scenario_type == 'sms' %}amber{% elif scenario.scenario_type == 'phone' %}teal{% else %}gray{% endif %}">{{ scenario.get_scenario_type_display }}</span>
+          {% if scenario.id in completed_ids %}
+            <span class="badge badge-green">{% include "includes/svg.html" with name="check-circle" %} Attempted</span>
+          {% else %}
+            <span class="text-xs text-faint">New</span>
+          {% endif %}
+        </div>
+        <h3 style="margin-top:var(--space-3);">{{ scenario.title }}</h3>
+        <p class="text-small text-muted">{{ scenario.description|truncatechars:120 }}</p>
+        <div class="module-meta">
+          <span class="badge badge-{% if scenario.difficulty == 'beginner' %}green{% elif scenario.difficulty == 'intermediate' %}amber{% else %}red{% endif %}">{{ scenario.get_difficulty_display }}</span>
+          <span>{% include "includes/svg.html" with name="layers" %}{{ scenario.real_flags.count }} red flags</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    {% include "includes/svg.html" with name="shield-alert" %}
+    <h3>No scenarios match</h3>
+    <p>Try a different filter.</p>
+  </div>
+{% endif %}
+{% endblock %}

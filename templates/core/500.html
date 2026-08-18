@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Server error{% endblock %}
+
+{% block content %}
+<div class="container container-narrow">
+  <div class="card text-center">
+    {% include "includes/svg.html" with name="bug" %}
+    <h1>500 — Something went wrong</h1>
+    <p class="text-muted">An unexpected error occurred. The issue has been logged and will be looked into.</p>
+    <a class="btn btn-primary" href="{% url 'core:landing' %}">Return home</a>
+  </div>
+</div>
+{% endblock %}

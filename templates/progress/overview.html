@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}My progress{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <h1 class="mb-0">My progress</h1>
+    <p class="text-muted mb-0">Your training journey at a glance.</p>
+  </div>
+  <div class="flex flex-wrap" style="gap:var(--space-2);">
+    <span class="badge badge-blue">Overall {{ total_progress }}%</span>
+    <span class="badge badge-teal">Awareness {{ awareness_score }}%</span>
+  </div>
+</div>
+
+<div class="grid grid-4" style="margin-bottom:var(--space-5);">
+  <div class="stat">
+    <span class="icon">{% include "includes/svg.html" with name="layers" %}</span>
+    <div class="value">{{ completed_count }}</div>
+    <div class="label">Modules completed</div>
+  </div>
+  <div class="stat">
+    <span class="icon" style="background:var(--accent-soft);color:var(--accent);">{% include "includes/svg.html" with name="brain" %}</span>
+    <div class="value">{{ user.quiz_attempts.count }}</div>
+    <div class="label">Quiz attempts</div>
+  </div>
+  <div class="stat">
+    <span class="icon">{% include "includes/svg.html" with name="shield-alert" %}</span>
+    <div class="value">{{ user.scenario_attempts.count }}</div>
+    <div class="label">Scenarios completed</div>
+  </div>
+  <div class="stat">
+    <span class="icon" style="background:var(--warning-soft);color:var(--warning);">{% include "includes/svg.html" with name="award" %}</span>
+    <div class="value">{{ user.achievements.count }}</div>
+    <div class="label">Achievements</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Module-by-module progress</h2>
+  {% if progress_records %}
+    <div class="stack">
+      {% for record in progress_records %}
+        <div>
+          <div class="flex-between">
+            <a href="{{ record.module.get_absolute_url }}" style="font-weight:600;">{{ record.module.title }}</a>
+            <span class="text-small text-muted">
+              {% if record.completed %}
+                <span class="badge badge-green">{% include "includes/svg.html" with name="check-circle" %} Completed</span>
+              {% else %}
+                {{ record.progress_percentage }}%
+              {% endif %}
+            </span>
+          </div>
+          <div class="progress mt-2" role="progressbar" aria-valuenow="{{ record.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill {% if record.completed %}green{% endif %}" style="width: {{ record.progress_percentage }}%;"></div>
+          </div>
+          <div class="text-xs text-faint mt-1">Last accessed {{ record.last_accessed|timesince }} ago</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      {% include "includes/svg.html" with name="layers" %}
+      <h3>No progress yet</h3>
+      <p><a href="{% url 'training:index' %}">Start your first training module</a> to begin.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

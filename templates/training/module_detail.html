@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}{{ module.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb" class="text-small text-muted" style="margin-bottom:var(--space-4);">
+  <a href="{% url 'training:index' %}">Training</a> / {{ module.title }}
+</nav>
+
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <div class="flex flex-wrap" style="gap:var(--space-2);margin-bottom:var(--space-2);">
+      <span class="badge badge-blue">{{ module.category }}</span>
+      <span class="badge badge-{% if module.difficulty == 'beginner' %}green{% elif module.difficulty == 'intermediate' %}amber{% else %}red{% endif %}">{{ module.get_difficulty_display }}</span>
+      {% if module.featured %}<span class="badge badge-teal">Featured</span>{% endif %}
+    </div>
+    <h1 class="mb-0">{{ module.title }}</h1>
+  </div>
+  <div class="text-right" style="text-align:right;">
+    <div class="text-small text-muted">Module progress</div>
+    {% if progress %}
+      <div class="progress" style="width:180px;margin-left:auto;" role="progressbar" aria-valuenow="{{ progress.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-fill {% if progress.completed %}green{% endif %}" style="width: {{ progress.progress_percentage }}%;"></div>
+      </div>
+      <div class="text-xs text-muted mt-1">{{ progress.progress_percentage }}%{% if progress.completed %} · Completed{% endif %}</div>
+    {% else %}
+      <div class="text-xs text-muted mt-1">Not started</div>
+    {% endif %}
+  </div>
+</div>
+
+{% if module.description %}
+  <p class="text-muted" style="max-width:52rem;">{{ module.description }}</p>
+{% endif %}
+
+<div class="grid" style="grid-template-columns: 1.4fr 1fr; align-items: start; gap:var(--space-5);">
+  <div class="stack">
+    <div class="card">
+      <h2>Lessons</h2>
+      {% for lesson in lessons %}
+        <div class="flex-between" style="padding:var(--space-3) 0;border-bottom:1px solid var(--border);{% if forloop.last %}border-bottom:none;{% endif %}">
+          <div class="flex" style="gap:var(--space-3);">
+            {% if lesson.id in completed_ids %}
+              <span class="avatar" style="background:var(--success-soft);color:var(--success);">{% include "includes/svg.html" with name="check" %}</span>
+            {% else %}
+              <span class="avatar" style="background:var(--surface-3);color:var(--text-faint);">{{ forloop.counter }}</span>
+            {% endif %}
+            <div>
+              <a href="{% url 'training:lesson_detail' lesson.slug %}" style="font-weight:600;">{{ lesson.title }}</a>
+              <div class="text-xs text-muted">{% include "includes/svg.html" with name="clock" %} {{ lesson.estimated_minutes }} min read</div>
+            </div>
+          </div>
+          <a class="btn btn-ghost" href="{% url 'training:lesson_detail' lesson.slug %}" aria-label="Open lesson: {{ lesson.title }}">
+            {% include "includes/svg.html" with name="arrow-right" %}
+          </a>
+        </div>
+      {% empty %}
+        <p class="text-muted mb-0">No lessons published yet.</p>
+      {% endfor %}
+    </div>
+
+    {% if related_quiz %}
+      <div class="card">
+        <div class="flex" style="align-items:flex-start;gap:var(--space-4);">
+          <span class="feature-icon teal" style="margin:0;">{% include "includes/svg.html" with name="brain" %}</span>
+          <div class="grow">
+            <h3 style="margin-bottom:var(--space-1);">Related quiz</h3>
+            <p class="text-small text-muted mb-0">{{ related_quiz.title }}</p>
+            <a class="btn btn-primary mt-3" href="{% url 'quizzes:detail' related_quiz.pk %}">Take the quiz</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <h3>Module details</h3>
+      <div class="module-meta">
+        <span>{% include "includes/svg.html" with name="layers" %}{{ lessons|length }} lessons</span>
+        <span>{% include "includes/svg.html" with name="clock" %}{{ module.estimated_minutes }} minutes</span>
+      </div>
+      <hr class="divider">
+      {% if user.is_authenticated and progress and progress.completed %}
+        <span class="badge badge-green">{% include "includes/svg.html" with name="check-circle" %} Completed</span>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3>Try a related simulation</h3>
+      <div class="stack">
+        {% for scenario in related_scenarios %}
+          <a href="{{ scenario.get_absolute_url }}" class="flex" style="align-items:flex-start;gap:var(--space-3);">
+            <span class="feature-icon" style="margin:0;">{% include "includes/svg.html" with name="shield-alert" %}</span>
+            <span class="grow">
+              <span style="font-weight:600;">{{ scenario.title }}</span>
+              <span class="text-xs text-muted" style="display:block;">{{ scenario.get_scenario_type_display }} · {{ scenario.get_difficulty_display }}</span>
+            </span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

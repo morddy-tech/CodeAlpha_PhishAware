@@ -1,0 +1,56 @@
+{% extends "dashboard/admin/base_admin.html" %}
+{% load core_extras %}
+
+{% block admin_title %}Overview{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-4" style="margin-bottom:var(--space-5);">
+  <div class="stat"><span class="icon">{% include "includes/svg.html" with name="users" %}</span><div class="value">{{ overview.total_users }}</div><div class="label">Total users</div></div>
+  <div class="stat"><span class="icon" style="background:var(--accent-soft);color:var(--accent);">{% include "includes/svg.html" with name="user" %}</span><div class="value">{{ overview.active_learners }}</div><div class="label">Active learners</div></div>
+  <div class="stat"><span class="icon">{% include "includes/svg.html" with name="layers" %}</span><div class="value">{{ overview.modules }}</div><div class="label">Modules</div></div>
+  <div class="stat"><span class="icon" style="background:var(--warning-soft);color:var(--warning);">{% include "includes/svg.html" with name="brain" %}</span><div class="value">{{ overview.quizzes }}</div><div class="label">Quizzes</div></div>
+  <div class="stat"><span class="icon">{% include "includes/svg.html" with name="shield-alert" %}</span><div class="value">{{ overview.scenarios }}</div><div class="label">Scenarios</div></div>
+  <div class="stat"><span class="icon" style="background:var(--accent-soft);color:var(--accent);">{% include "includes/svg.html" with name="list" %}</span><div class="value">{{ overview.quiz_attempts }}</div><div class="label">Quiz attempts</div></div>
+  <div class="stat"><span class="icon">{% include "includes/svg.html" with name="target" %}</span><div class="value">{{ overview.avg_score }}%</div><div class="label">Average quiz score</div></div>
+  <div class="stat"><span class="icon" style="background:var(--warning-soft);color:var(--warning);">{% include "includes/svg.html" with name="trend" %}</span><div class="value">{{ overview.completion_rate }}%</div><div class="label">Quiz pass rate</div></div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Recent registrations</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>User</th><th>Email</th><th>Joined</th></tr>
+        </thead>
+        <tbody>
+          {% for u in overview.recent_users %}
+            <tr>
+              <td><a href="{% url 'dashboard:admin_user_detail' u.pk %}">{{ u.username }}</a></td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.date_joined|date:"M d" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-center text-muted">No users yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Quick management</h2>
+    <div class="stack">
+      <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_content' %}">Manage training content</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_users' %}">View all users</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_analytics' %}">View analytics</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_feedback' %}">Review feedback ({{ overview.feedback_count }})</a>
+      <a class="btn btn-secondary btn-block" href="/admin/">Open Django admin</a>
+    </div>
+    <hr class="divider">
+    <p class="text-small text-muted mb-0">
+      Module completion rate: <strong>{{ overview.module_completion_rate }}%</strong><br>
+      Scenario attempts: <strong>{{ overview.scenario_attempts }}</strong>
+    </p>
+  </div>
+</div>
+{% endblock %}

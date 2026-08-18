@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}About PhishAware{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <h1>About PhishAware</h1>
+  <p class="lead text-muted" style="font-size:1.1rem;">
+    {{ site_name }} is a defensive cybersecurity awareness training platform built as
+    <strong>Task 2 (Phishing Awareness Training)</strong> of the CodeAlpha Cyber Security
+    internship.
+  </p>
+
+  <div class="card" style="margin-top:var(--space-5);">
+    <h2>Our mission</h2>
+    <p>
+      Phishing remains the #1 way attackers breach organizations because it targets
+      human trust rather than technical flaws. The most effective defense is a
+      well-trained, skeptical workforce. PhishAware exists to deliver that training
+      through realistic — but completely safe — practice.
+    </p>
+  </div>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <h2>What we teach</h2>
+    <ul>
+      <li>Recognizing phishing emails, fake websites, SMS (smishing) and calls (vishing)</li>
+      <li>Social engineering tactics and Business Email Compromise</li>
+      <li>Safe password and MFA habits</li>
+      <li>Exactly how to respond when you suspect — or click — a threat</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <h2>Ethics and safety</h2>
+    <p>
+      Every simulation in PhishAware is <strong>defensive and educational</strong>.
+      We use fictional organizations and domains (like example.com). No real
+      credentials are ever collected, stored, or transmitted. The fake login pages
+      are decorative — any text typed into them is discarded instantly. PhishAware
+      cannot be used to conduct real phishing.
+    </p>
+  </div>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <h2>Built for CodeAlpha</h2>
+    <p>
+      This project fulfills the CodeAlpha Cyber Security Internship Task 2 brief:
+      phishing awareness training covering education, fake website recognition,
+      social engineering, best practices, real-world examples, and interactive quizzes.
+    </p>
+    <a class="btn btn-secondary" href="{{ github_url }}">View the project on GitHub</a>
+  </div>
+</div>
+{% endblock %}

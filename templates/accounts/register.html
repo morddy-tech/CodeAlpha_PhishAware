@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Create an account{% endblock %}
+
+{% block content %}
+<div class="container container-narrow">
+  <div class="card auth-card">
+    <h1 class="text-center">Create your account</h1>
+    <p class="text-center text-muted text-small" style="margin-top:-0.5rem;">
+      Start learning to detect and defend against phishing.
+    </p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "includes/form_fields.html" %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      </div>
+    </form>
+  </div>
+  <p class="auth-alt">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
+</div>
+{% endblock %}

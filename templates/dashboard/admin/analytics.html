@@ -1,0 +1,131 @@
+{% extends "dashboard/admin/base_admin.html" %}
+{% load core_extras %}
+
+{% block admin_title %}Analytics{% endblock %}
+
+{% block admin_content %}
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Module popularity</h2>
+    {% if module_popularity %}
+      {% with max=module_popularity.0.count %}
+      <div class="chart-bars">
+        {% for row in module_popularity %}
+          <div class="chart-row">
+            <span title="{{ row.module__title }}">{{ row.module__title|truncatechars:22 }}</span>
+            <div class="bar-track"><div class="bar-fill" style="width: {% widthratio row.count max 100 %}%;"></div></div>
+            <span class="bar-val">{{ row.count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+      {% endwith %}
+    {% else %}
+      <p class="text-muted mb-0">No data yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Quiz performance</h2>
+    {% if quiz_performance %}
+      {% with max=quiz_performance.0.attempts %}
+      <div class="chart-bars">
+        {% for row in quiz_performance %}
+          <div class="chart-row">
+            <span title="{{ row.quiz__title }}">{{ row.quiz__title|truncatechars:22 }}</span>
+            <div class="bar-track"><div class="bar-fill" style="width: {% widthratio row.attempts max 100 %}%;"></div></div>
+            <span class="bar-val">{{ row.attempts }}</span>
+          </div>
+        {% endfor %}
+      </div>
+      {% endwith %}
+      <div class="text-xs text-muted mt-3">Avg score across quizzes: {% for row in quiz_performance %}{% if forloop.first %}{{ row.avg|floatformat:0 }}%{% endif %}{% endfor %}</div>
+    {% else %}
+      <p class="text-muted mb-0">No data yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Most difficult questions</h2>
+    {% if difficult_questions %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Question</th><th>Missed</th></tr></thead>
+          <tbody>
+            {% for row in difficult_questions %}
+              <tr>
+                <td>{{ row.question__question_text|truncatechars:80 }}</td>
+                <td>{{ row.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No data yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Scenario performance</h2>
+    {% if scenario_performance %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scenario</th><th>Attempts</th><th>Avg score</th></tr></thead>
+          <tbody>
+            {% for row in scenario_performance %}
+              <tr>
+                <td>{{ row.scenario__title|truncatechars:60 }}</td>
+                <td>{{ row.attempts }}</td>
+                <td>{{ row.avg_score|floatformat:0 }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No data yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Common red-flag types</h2>
+    {% if indicator_performance %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Indicator type</th><th>Scenarios</th></tr></thead>
+          <tbody>
+            {% for row in indicator_performance %}
+              <tr>
+                <td>{{ row.indicator_type|title }}</td>
+                <td>{{ row.total }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No data yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Modules completed (last 8 weeks)</h2>
+    {% if completion_trend %}
+      <div class="chart-bars">
+        {% with max=completion_trend.7.count %}
+          {% if max == 0 %}{% with max=1 %}{% endwith %}{% endif %}
+        {% endwith %}
+        {% for week in completion_trend %}
+          <div class="chart-row">
+            <span>{{ week.label }}</span>
+            <div class="bar-track"><div class="bar-fill" style="width: {{ week.count }}%;"></div></div>
+            <span class="bar-val">{{ week.count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No data yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

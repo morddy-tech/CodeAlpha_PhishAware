@@ -1,0 +1,80 @@
+{% extends "dashboard/admin/base_admin.html" %}
+
+{% block admin_title %}User · {{ target_user.username }}{% endblock %}
+
+{% block admin_content %}
+<div class="card" style="margin-bottom:var(--space-4);">
+  <div class="flex" style="gap:var(--space-4);align-items:center;">
+    <span class="avatar avatar-lg">{{ target_user.username|slice:":1"|upper }}</span>
+    <div class="grow">
+      <h3 class="mb-0">{{ target_user.get_full_name|default:target_user.username }}</h3>
+      <div class="text-small text-muted">{{ target_user.email }} · joined {{ target_user.date_joined|date:"M d, Y" }}</div>
+    </div>
+    <span class="badge {% if target_user.is_active %}badge-green{% else %}badge-gray{% endif %}">{{ target_user.is_active|yesno:"Active,Inactive" }}</span>
+    {% if target_user.is_staff %}<span class="badge badge-blue">Staff</span>{% endif %}
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Module progress</h2>
+    {% if rows %}
+      <div class="stack">
+        {% for record in rows %}
+          <div>
+            <div class="flex-between">
+              <span class="text-small" style="font-weight:600;">{{ record.module.title }}</span>
+              <span class="text-xs text-muted">{{ record.progress_percentage }}%</span>
+            </div>
+            <div class="progress mt-1" role="progressbar" aria-valuenow="{{ record.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill {% if record.completed %}green{% endif %}" style="width: {{ record.progress_percentage }}%;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No training started.</p>
+    {% endif %}
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <h2>Recent quiz attempts</h2>
+      {% if attempts %}
+        <ul class="activity-list">
+          {% for attempt in attempts %}
+            <li>
+              <span class="a-icon">{% include "includes/svg.html" with name="brain" %}</span>
+              <div>
+                <a href="{% url 'quizzes:result' attempt.pk %}" class="a-title">{{ attempt.quiz.title }}</a>
+                <div class="a-meta">{{ attempt.percentage }}% · {% if attempt.passed %}passed{% else %}not passed{% endif %}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">No quiz attempts.</p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>Recent scenarios</h2>
+      {% if scenarios %}
+        <ul class="activity-list">
+          {% for attempt in scenarios %}
+            <li>
+              <span class="a-icon">{% include "includes/svg.html" with name="shield-alert" %}</span>
+              <div>
+                <a href="{% url 'simulations:scenario_detail' attempt.scenario.pk %}" class="a-title">{{ attempt.scenario.title }}</a>
+                <div class="a-meta">Score {{ attempt.score }}%</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">No scenario attempts.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

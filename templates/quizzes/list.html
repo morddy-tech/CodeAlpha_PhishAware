@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}Quizzes{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <h1 class="mb-0">Knowledge quizzes</h1>
+    <p class="text-muted mb-0">Test what you've learned. Scores are calculated server-side.</p>
+  </div>
+  {% if user.is_authenticated %}
+    <span class="badge badge-blue">{{ attempts|length }}/{{ quizzes|length }} attempted</span>
+  {% endif %}
+</div>
+
+<div class="filter-bar">
+  <form method="get" role="search">
+    <input class="search-input" type="search" name="q" value="{{ search }}" placeholder="Search quizzes…" aria-label="Search quizzes">
+    <button type="submit" class="btn btn-secondary">Search</button>
+  </form>
+</div>
+
+{% if quizzes %}
+  <div class="grid grid-2">
+    {% for quiz in quizzes %}
+      {% with attempt=attempts|dict_key:quiz.pk %}
+        <a href="{% url 'quizzes:detail' quiz.pk %}" class="card card-hover" style="display:block;">
+          <div class="flex-between">
+            <span class="badge badge-teal">{% include "includes/svg.html" with name="brain" %} Quiz</span>
+            {% if quiz.module %}
+              <span class="text-xs text-muted">{{ quiz.module.title }}</span>
+            {% endif %}
+          </div>
+          <h3 style="margin-top:var(--space-3);">{{ quiz.title }}</h3>
+          <p class="text-small text-muted">{{ quiz.description|truncatechars:120 }}</p>
+          <div class="module-meta">
+            <span>{% include "includes/svg.html" with name="list" %}{{ quiz.questions.count }} questions</span>
+            <span>{% include "includes/svg.html" with name="target" %}Pass: {{ quiz.passing_score }}%</span>
+            {% if attempt %}
+              <span class="badge {% if attempt.passed %}badge-green{% else %}badge-red{% endif %}">{{ attempt.percentage }}%</span>
+            {% endif %}
+          </div>
+        </a>
+      {% endwith %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    {% include "includes/svg.html" with name="brain" %}
+    <h3>No quizzes found</h3>
+    <p>Try a different search.</p>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Achievements{% endblock %}
+
+{% block content %}
+<h1>Achievements</h1>
+<p class="text-muted">Earn badges as you build your security awareness.</p>
+
+<div class="grid grid-3" style="margin-top:var(--space-5);">
+  {% for achievement in achievements %}
+    <div class="achievement {% if achievement.id not in earned_ids %}locked{% endif %}">
+      <span class="a-icon">{% include "includes/svg.html" with name=achievement.icon %}</span>
+      <div>
+        <div class="flex" style="gap:var(--space-2);flex-wrap:wrap;">
+          <strong>{{ achievement.name }}</strong>
+          {% if achievement.id in earned_ids %}
+            <span class="badge badge-green">{% include "includes/svg.html" with name="check" %} Earned</span>
+          {% else %}
+            <span class="badge badge-gray">Locked</span>
+          {% endif %}
+        </div>
+        <p class="text-small text-muted mb-0" style="margin-top:var(--space-1);">{{ achievement.description }}</p>
+        <div class="text-xs text-faint" style="margin-top:var(--space-2);">{{ achievement.requirement }}</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% if awarded %}
+  <div class="card" style="margin-top:var(--space-5);">
+    <h2>Recently earned</h2>
+    <ul class="activity-list">
+      {% for item in awarded %}
+        <li>
+          <span class="a-icon">{% include "includes/svg.html" with name=item.achievement.icon %}</span>
+          <div>
+            <div class="a-title">{{ item.achievement.name }}</div>
+            <div class="a-meta">Earned {{ item.awarded_at|date:"M d, Y" }}</div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+{% endblock %}

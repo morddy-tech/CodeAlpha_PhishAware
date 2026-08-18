@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <h1 class="mb-0">{% block admin_title %}Admin dashboard{% endblock %}</h1>
+    <p class="text-muted mb-0">Staff area · authorized personnel only</p>
+  </div>
+  <a class="btn btn-secondary" href="/admin/">Django admin</a>
+</div>
+
+<div class="admin-shell">
+  <nav class="admin-nav" aria-label="Admin">
+    <a href="{% url 'dashboard:admin_dashboard' %}" {% if active_tab == 'overview' %}class="active"{% endif %}>{% include "includes/svg.html" with name="home" %}Overview</a>
+    <a href="{% url 'dashboard:admin_users' %}" {% if active_tab == 'users' %}class="active"{% endif %}>{% include "includes/svg.html" with name="users" %}Users</a>
+    <a href="{% url 'dashboard:admin_content' %}" {% if active_tab == 'content' %}class="active"{% endif %}>{% include "includes/svg.html" with name="layers" %}Content</a>
+    <a href="{% url 'dashboard:admin_analytics' %}" {% if active_tab == 'analytics' %}class="active"{% endif %}>{% include "includes/svg.html" with name="bar-chart" %}Analytics</a>
+    <a href="{% url 'dashboard:admin_feedback' %}" {% if active_tab == 'feedback' %}class="active"{% endif %}>{% include "includes/svg.html" with name="message-square" %}Feedback</a>
+  </nav>
+  <div>
+    {% block admin_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

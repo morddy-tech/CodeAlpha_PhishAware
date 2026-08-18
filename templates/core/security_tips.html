@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Security tips{% endblock %}
+
+{% block content %}
+<h1>Security tips</h1>
+<p class="text-muted">Practical, defensive habits you can apply today.</p>
+
+<div class="grid grid-2" style="margin-top:var(--space-5);">
+  <div class="card">
+    <span class="feature-icon">{% include "includes/svg.html" with name="key" %}</span>
+    <h2>Password hygiene</h2>
+    <ul class="text-small">
+      <li>Use a unique, long passphrase for every account.</li>
+      <li>Let a password manager generate and store passwords.</li>
+      <li>Never reuse passwords across sites.</li>
+      <li>Never share your password with anyone, even IT support.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="feature-icon teal">{% include "includes/svg.html" with name="lock" %}</span>
+    <h2>Multi-factor authentication</h2>
+    <ul class="text-small">
+      <li>Enable MFA on email, banking, and social media first.</li>
+      <li>Prefer authenticator apps or hardware keys over SMS.</li>
+      <li>Never read a one-time code back to a caller.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="feature-icon">{% include "includes/svg.html" with name="eye" %}</span>
+    <h2>Suspicious links</h2>
+    <ul class="text-small">
+      <li>Hover links to inspect the real domain before clicking.</li>
+      <li>Type official addresses yourself instead of using links in messages.</li>
+      <li>A padlock (HTTPS) proves encryption, not trustworthiness.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="feature-icon teal">{% include "includes/svg.html" with name="users" %}</span>
+    <h2>Social engineering</h2>
+    <ul class="text-small">
+      <li>Verify unusual requests out of band (a known phone number).</li>
+      <li>Never approve payments or gift cards from email alone.</li>
+      <li>Urgency plus secrecy equals fraud.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="feature-icon">{% include "includes/svg.html" with name="message-square" %}</span>
+    <h2>Reporting suspicious messages</h2>
+    <ul class="text-small">
+      <li>Use your organization's report-phishing button or forward to security.</li>
+      <li>Keep the message intact so it can be analyzed.</li>
+      <li>Reporting protects everyone, not just you.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <span class="feature-icon teal">{% include "includes/svg.html" with name="globe" %}</span>
+    <h2>Safe browsing</h2>
+    <ul class="text-small">
+      <li>Bookmark important sites and navigate from the bookmark.</li>
+      <li>Keep your browser and device updated.</li>
+      <li>Be wary of pages that threaten or rush you.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="alert alert-warning" style="margin-top:var(--space-5);">
+  {% include "includes/svg.html" with name="info" %}
+  <div><strong>Remember:</strong> this platform is educational only. If you believe you've been phished, change your passwords, enable MFA, and report to your security team immediately.</div>
+</div>
+{% endblock %}

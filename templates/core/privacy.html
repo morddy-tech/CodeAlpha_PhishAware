@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <h1>Privacy statement</h1>
+  <p class="text-muted">Last updated: {% now "F Y" %}</p>
+
+  <div class="card">
+    <h2>What we store</h2>
+    <ul>
+      <li>Your account: username, email, first/last name, and a securely hashed password.</li>
+      <li>Optional profile: avatar, organization, job title, timezone, theme preference.</li>
+      <li>Your learning activity: module and lesson completions, quiz and simulation results, achievements, and notifications.</li>
+      <li>Any feedback you voluntarily submit.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <h2>What we never store</h2>
+    <ul>
+      <li>Passwords typed into simulation login fields (they are discarded instantly).</li>
+      <li>Banking information, credit card data, or MFA codes.</li>
+      <li>Your real passwords for third-party services.</li>
+      <li>Unnecessary device or location information.</li>
+    </ul>
+  </div>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <h2>Data use</h2>
+    <p>
+      We only use your data to deliver training and track your progress. We do not
+      sell data, and we do not share learning results with third parties. If you
+      submit feedback, it is visible to platform administrators only.
+    </p>
+  </div>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <h2>Your choices</h2>
+    <p>
+      You can update your profile and notification preferences at any time from the
+      Profile page. To delete your account, contact the platform administrator.
+    </p>
+  </div>
+</div>
+{% endblock %}

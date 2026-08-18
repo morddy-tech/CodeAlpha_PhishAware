@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Your profile{% endblock %}
+
+{% block content %}
+<h1>Your profile</h1>
+<div class="dashboard-grid" style="margin-top:var(--space-4);">
+  <div class="stack">
+    <div class="card">
+      <div class="card-header">
+        <h2>Profile settings</h2>
+      </div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+          {% if field.name == 'preferred_theme' %}
+            <div class="form-field">
+              <label>{{ field.label }}</label>
+              <div class="radio-grid">
+                {% for radio in field %}
+                  <label class="radio-card" for="{{ radio.id_for_label }}">
+                    {{ radio.tag }}
+                    <span>{{ radio.choice_label }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+              {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+              {% if field.errors %}<ul class="errorlist">{{ field.errors }}</ul>{% endif %}
+            </div>
+          {% elif field.name == 'notification_preferences' %}
+            <div class="form-field">
+              <label class="checkbox-row" for="{{ field.id_for_label }}">
+                {{ field }}
+                <span>{{ field.label }}</span>
+              </label>
+              {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+            </div>
+          {% else %}
+            <div class="form-field">
+              <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="text-faint"> *</span>{% endif %}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+              {% if field.errors %}<ul class="errorlist">{{ field.errors }}</ul>{% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Change password</h2>
+      </div>
+      <p class="text-small text-muted mb-0">
+        <a href="{% url 'accounts:password_change' %}">Update your password →</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card text-center">
+      <span class="avatar avatar-lg" style="margin:0 auto var(--space-3);display:flex;">
+        {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="Your avatar">{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+      </span>
+      <h3>{{ user.get_full_name|default:user.username }}</h3>
+      <p class="text-muted text-small mb-0">{{ user.email }}</p>
+      <hr class="divider">
+      <h4>Upload avatar</h4>
+      <form method="post" action="{% url 'accounts:avatar_upload' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-field">
+          <input type="file" name="avatar" id="id_avatar" accept="image/png,image/jpeg">
+          <div class="help-text">PNG or JPEG, 2 MB max.</div>
+        </div>
+        <button type="submit" class="btn btn-secondary btn-block">Upload</button>
+      </form>
+      <p class="text-xs text-faint mt-3 mb-0">Member since {{ user.date_joined|date:"M Y" }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

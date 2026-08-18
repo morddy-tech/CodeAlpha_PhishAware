@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <span class="badge badge-blue">{% include "includes/svg.html" with name="sparkles" %}CodeAlpha Cyber Security · Task 2</span>
+        <h1>Recognize Phishing <span class="text-gradient">Before It Recognizes You.</span></h1>
+        <p class="lead">
+          PhishAware is a defensive training platform that teaches you to spot
+          phishing emails, fake websites, and social engineering — through
+          interactive simulations, quizzes, and progress tracking.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="{% url 'accounts:register' %}">Start Training {% include "includes/svg.html" with name="arrow-right" %}</a>
+          <a class="btn btn-secondary btn-lg" href="{% url 'simulations:list' %}">{% include "includes/svg.html" with name="shield-alert" %} Explore Phishing Threats</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div id="hero-carousel" class="mock-carousel" role="region" aria-label="Examples of phishing attacks" tabindex="0">
+          <!-- Slides -->
+          <div class="mock-slide active" aria-hidden="false">
+            <div class="mock-email">
+              <div class="mock-email-header">
+                <div class="row"><span class="k">From:</span><span>Bank of Example</span></div>
+                <div class="row"><span class="k">Subject:</span><strong>Your account will be suspended</strong></div>
+              </div>
+              <div class="mock-email-body">
+                <p>
+                  Confirm your identity within 24 hours or your account will be closed…
+                </p>
+                <div>
+                  <span class="flag">URGENCY</span>
+                  <span class="flag">FAKE DOMAIN</span>
+                  <span class="flag">REQUEST FOR CREDENTIALS</span>
+                </div>
+                <p class="text-xs text-muted mt-2">Can you spot the signs? Learn with PhishAware.</p>
+              </div>
+            </div>
+          </div>
+          <div class="mock-slide" aria-hidden="true" hidden>
+            <div class="mock-email">
+              <div class="mock-email-header">
+                <div class="row"><span class="k">Site:</span><span>secure-login.example.net</span></div>
+                <div class="row"><span class="k">Subject:</span><strong>Account verification required</strong></div>
+              </div>
+              <div class="mock-email-body">
+                <p>
+                  We noticed unusual activity. Re-verify your password within 10 minutes or access is locked.
+                </p>
+                <div>
+                  <span class="flag">FAKE DOMAIN</span>
+                  <span class="flag">URGENCY</span>
+                  <span class="flag">UNEXPECTED LOGIN</span>
+                </div>
+                <p class="text-xs text-muted mt-2">Can you spot the signs? Learn with PhishAware.</p>
+              </div>
+            </div>
+          </div>
+          <div class="mock-slide" aria-hidden="true" hidden>
+            <div class="mock-email">
+              <div class="mock-email-header">
+                <div class="row"><span class="k">From:</span><span>NationalBank Alert</span></div>
+                <div class="row"><span class="k">Subject:</span><strong>Your card has been blocked</strong></div>
+              </div>
+              <div class="mock-email-body">
+                <p>
+                  Your debit card was blocked. Call +1 (555) 014-2290 immediately to reactivate it.
+                </p>
+                <div>
+                  <span class="flag">SPOOFED SENDER</span>
+                  <span class="flag">UNKNOWN NUMBER</span>
+                  <span class="flag">REQUEST FOR DETAILS</span>
+                </div>
+                <p class="text-xs text-muted mt-2">Can you spot the signs? Learn with PhishAware.</p>
+              </div>
+            </div>
+          </div>
+          <div class="mock-slide" aria-hidden="true" hidden>
+            <div class="mock-email">
+              <div class="mock-email-header">
+                <div class="row"><span class="k">From:</span><span>Sarah Mitchell (Executive VP)</span></div>
+                <div class="row"><span class="k">Subject:</span><strong>Quick favour needed</strong></div>
+              </div>
+              <div class="mock-email-body">
+                <p>
+                  Buy four $500 gift cards for a client and send me the codes. Please keep this quiet.
+                </p>
+                <div>
+                  <span class="flag">GIFT CARDS</span>
+                  <span class="flag">URGENCY</span>
+                  <span class="flag">SECRECY</span>
+                </div>
+                <p class="text-xs text-muted mt-2">Can you spot the signs? Learn with PhishAware.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Pagination dots (created by main.js) -->
+        <div class="carousel-controls">
+          <div class="carousel-dots" role="group" aria-label="Choose a phishing example"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-metrics">
+      <div class="hero-metric"><span class="value">{{ module_count }}</span><span class="label">Training Modules</span></div>
+      <div class="hero-metric"><span class="value">{{ scenario_count }}</span><span class="label">Interactive Scenarios</span></div>
+      <div class="hero-metric"><span class="value">{{ quiz_count }}</span><span class="label">Knowledge Quizzes</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">{% include "includes/svg.html" with name="alert-triangle" %}Understand the threat</span>
+      <h2 class="section-title">What is Phishing?</h2>
+      <p class="section-desc">
+        Phishing is a social engineering attack that impersonates trusted people
+        or brands to trick you into revealing secrets, clicking bad links, or
+        sending money. It works on people — so the defense is people too.
+      </p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <span class="feature-icon">{% include "includes/svg.html" with name="mail" %}</span>
+        <h3>Email Phishing</h3>
+        <p class="text-small text-muted mb-0">Spoofed senders, lookalike domains, fake invoices, and malicious attachments.</p>
+      </div>
+      <div class="card">
+        <span class="feature-icon teal">{% include "includes/svg.html" with name="globe" %}</span>
+        <h3>Fake Websites</h3>
+        <p class="text-small text-muted mb-0">Fraudulent login pages that copy real brands to harvest your password.</p>
+      </div>
+      <div class="card">
+        <span class="feature-icon">{% include "includes/svg.html" with name="phone" %}</span>
+        <h3>Smishing &amp; Vishing</h3>
+        <p class="text-small text-muted mb-0">Attacks by text message and phone, including MFA code scams.</p>
+      </div>
+      <div class="card">
+        <span class="feature-icon teal">{% include "includes/svg.html" with name="users" %}</span>
+        <h3>Social Engineering</h3>
+        <p class="text-small text-muted mb-0">Manipulation tactics from gift-card fraud to pretexting and BEC.</p>
+      </div>
+      <div class="card">
+        <span class="feature-icon">{% include "includes/svg.html" with name="key" %}</span>
+        <h3>Password &amp; MFA</h3>
+        <p class="text-small text-muted mb-0">Build the habits that keep your accounts safe even when attackers come knocking.</p>
+      </div>
+      <div class="card">
+        <span class="feature-icon teal">{% include "includes/svg.html" with name="shield-alert" %}</span>
+        <h3>Incident Response</h3>
+        <p class="text-small text-muted mb-0">Know exactly what to do when you spot — or click — a suspicious message.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">{% include "includes/svg.html" with name="target" %}The method</span>
+      <h2 class="section-title">How PhishAware Works</h2>
+      <p class="section-desc">A four-step path from awareness to lasting security habits.</p>
+    </div>
+    <div class="grid grid-4">
+      <div class="text-center">
+        <span class="feature-icon" style="margin:0 auto 0.75rem;">{% include "includes/svg.html" with name="book" %}</span>
+        <h4>1 · Learn</h4>
+        <p class="text-small text-muted mb-0">Work through beginner-to-advanced training modules built by security educators.</p>
+      </div>
+      <div class="text-center">
+        <span class="feature-icon teal" style="margin:0 auto 0.75rem;">{% include "includes/svg.html" with name="target" %}</span>
+        <h4>2 · Practice</h4>
+        <p class="text-small text-muted mb-0">Spot red flags in simulated emails, fake websites, SMS and phone calls.</p>
+      </div>
+      <div class="text-center">
+        <span class="feature-icon" style="margin:0 auto 0.75rem;">{% include "includes/svg.html" with name="brain" %}</span>
+        <h4>3 · Test</h4>
+        <p class="text-small text-muted mb-0">Reinforce your knowledge with server-scored quizzes and instant feedback.</p>
+      </div>
+      <div class="text-center">
+        <span class="feature-icon teal" style="margin:0 auto 0.75rem;">{% include "includes/svg.html" with name="trend" %}</span>
+        <h4>4 · Track</h4>
+        <p class="text-small text-muted mb-0">Follow your awareness score, achievements, and progress over time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head section-head-left flex-between">
+      <div>
+        <span class="section-eyebrow">{% include "includes/svg.html" with name="book" %}Start learning</span>
+        <h2 class="section-title mb-0">Featured Training</h2>
+      </div>
+      <a class="icon-link" href="{% url 'training:index' %}">Browse all modules {% include "includes/svg.html" with name="arrow-right" %}</a>
+    </div>
+    <div class="grid grid-3">
+      {% for module in modules %}
+        <a href="{{ module.get_absolute_url }}" class="card card-hover" style="display:block;text-decoration:none;color:inherit;">
+          <div class="flex-between">
+            <span class="badge badge-blue">{{ module.category }}</span>
+            <span class="text-xs text-muted">{% include "includes/svg.html" with name="clock" %} {{ module.estimated_minutes }} min</span>
+          </div>
+          <h3 style="margin-top:0.75rem;">{{ module.title }}</h3>
+          <p class="text-small text-muted mb-0">{{ module.description|truncatechars:110 }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">{% include "includes/svg.html" with name="shield-alert" %}Practice safely</span>
+      <h2 class="section-title">Try a Simulation</h2>
+      <p class="section-desc">
+        These are safe, fictional exercises. Nothing you type is stored or sent
+        anywhere.
+      </p>
+    </div>
+    <div class="grid grid-3">
+      {% for scenario in scenarios %}
+        <a href="{{ scenario.get_absolute_url }}" class="card card-hover" style="display:block;text-decoration:none;color:inherit;">
+          <div class="flex-between">
+            <span class="badge badge-{% if scenario.scenario_type == 'email' %}blue{% elif scenario.scenario_type == 'website' %}red{% else %}amber{% endif %}">{{ scenario.get_scenario_type_display }}</span>
+            <span class="text-xs text-muted">{{ scenario.get_difficulty_display }}</span>
+          </div>
+          <h3 style="margin-top:0.75rem;">{{ scenario.title }}</h3>
+          <p class="text-small text-muted mb-0">{{ scenario.description|truncatechars:110 }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">{% include "includes/svg.html" with name="check" %}Build habits</span>
+      <h2 class="section-title">Everyday Security Tips</h2>
+      <p class="section-desc">Small habits that stop the majority of phishing attempts cold.</p>
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="flex" style="align-items:flex-start;gap:0.75rem;">
+          <span class="feature-icon" style="margin:0;flex-shrink:0;">{% include "includes/svg.html" with name="eye" %}</span>
+          <div>
+            <h4>Check before you click</h4>
+            <p class="text-small text-muted mb-0">Hover links to see the real destination. If a domain looks wrong, it is.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="flex" style="align-items:flex-start;gap:0.75rem;">
+          <span class="feature-icon teal" style="margin:0;flex-shrink:0;">{% include "includes/svg.html" with name="key" %}</span>
+          <div>
+            <h4>Turn on MFA</h4>
+            <p class="text-small text-muted mb-0">A second factor stops attackers who already have your password.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="flex" style="align-items:flex-start;gap:0.75rem;">
+          <span class="feature-icon" style="margin:0;flex-shrink:0;">{% include "includes/svg.html" with name="lock" %}</span>
+          <div>
+            <h4>Never share codes</h4>
+            <p class="text-small text-muted mb-0">One-time codes are secrets. Anyone asking for them is an attacker.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="flex" style="align-items:flex-start;gap:0.75rem;">
+          <span class="feature-icon teal" style="margin:0;flex-shrink:0;">{% include "includes/svg.html" with name="message-square" %}</span>
+          <div>
+            <h4>Report suspicious messages</h4>
+            <p class="text-small text-muted mb-0">Reporting protects your whole organization, not just you.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container container-narrow">
+    <div class="section-head">
+      <span class="section-eyebrow">{% include "includes/svg.html" with name="help" %}Answers</span>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+    </div>
+    <div class="stack">
+      <div class="card card-pad-sm">
+        <h4>Is this a real phishing tool?</h4>
+        <p class="text-small text-muted mb-0">No. PhishAware is strictly defensive and educational. All scenarios use fictional organizations and domains. No real credentials, payments, or targets are ever involved.</p>
+      </div>
+      <div class="card card-pad-sm">
+        <h4>Do the fake login pages collect my password?</h4>
+        <p class="text-small text-muted mb-0">Never. The simulated fields are decorative — whatever you type is discarded instantly and never stored or transmitted.</p>
+      </div>
+      <div class="card card-pad-sm">
+        <h4>What does my training data include?</h4>
+        <p class="text-small text-muted mb-0">Only your account, module/lesson progress, quiz and scenario results, achievements, and any feedback you submit. No sensitive credentials.</p>
+      </div>
+      <div class="card card-pad-sm">
+        <h4>How is the Security Awareness Score calculated?</h4>
+        <p class="text-small text-muted mb-0">It combines your training progress (40%), quiz average (35%), and scenario performance (25%).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="cta-panel">
+      <h2>Ready to defend?</h2>
+      <p>Create a free account and start your security awareness journey today.</p>
+      <div class="hero-actions">
+        <a class="btn btn-lg" href="{% url 'accounts:register' %}">Create your account {% include "includes/svg.html" with name="arrow-right" %}</a>
+        <a class="btn btn-secondary btn-lg" href="{% url 'training:index' %}">Explore training</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

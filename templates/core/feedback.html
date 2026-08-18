@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <h1>Share your feedback</h1>
+  <p class="text-muted">Help improve the training experience.</p>
+
+  <div class="card" style="margin-top:var(--space-4);">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-field">
+        <label>Rating</label>
+        <div class="radio-grid">
+          {% for radio in form.rating %}
+            <label class="radio-card" for="{{ radio.id_for_label }}">
+              {{ radio.tag }}
+              <span>{{ radio.choice_label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        {% if form.rating.errors %}<ul class="errorlist">{{ form.rating.errors }}</ul>{% endif %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.category.id_for_label }}">Category</label>
+        {{ form.category }}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.message.id_for_label }}">Message</label>
+        {{ form.message }}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Submit feedback</button>
+      </div>
+    </form>
+  </div>
+
+  {% if user_feedback %}
+    <div class="card" style="margin-top:var(--space-4);">
+      <h2>Your recent feedback</h2>
+      <div class="stack">
+        {% for item in user_feedback %}
+          <div class="feedback-item" style="margin-bottom:0;">
+            <span class="badge badge-teal">{{ item.rating }}/5</span>
+            <div>
+              <div class="text-small"><strong>{{ item.get_category_display }}</strong></div>
+              {% if item.message %}<div class="text-small text-muted">{{ item.message }}</div>{% endif %}
+              <div class="text-xs text-faint">{{ item.created_at|date:"M d, Y" }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

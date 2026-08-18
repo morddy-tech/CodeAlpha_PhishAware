@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <h1>Frequently asked questions</h1>
+  <div class="stack">
+    <div class="card">
+      <h2>Is PhishAware a real phishing tool?</h2>
+      <p class="text-muted mb-0">No. It is strictly defensive and educational. All scenarios use fictional organizations and domains (example.com and friends). No real phishing campaigns are ever conducted.</p>
+    </div>
+    <div class="card">
+      <h2>Do the fake login pages collect my password?</h2>
+      <p class="text-muted mb-0">Never. The simulated login fields are decorative. Whatever you type is discarded instantly and never stored, logged, or transmitted anywhere.</p>
+    </div>
+    <div class="card">
+      <h2>What data does PhishAware store about me?</h2>
+      <p class="text-muted mb-0">Only your account details, your training progress (modules, lessons, quizzes, simulations), achievements, and any feedback you choose to submit. No passwords beyond your account password (stored hashed), no banking data, no MFA codes.</p>
+    </div>
+    <div class="card">
+      <h2>How is the Security Awareness Score calculated?</h2>
+      <p class="text-muted mb-0">It is a weighted average: training progress (40%), quiz average (35%), and simulation performance (25%).</p>
+    </div>
+    <div class="card">
+      <h2>Do I need to create an account?</h2>
+      <p class="text-muted mb-0">You can browse training content and view simulations as a guest, but you need an account to track progress, take quizzes, earn achievements, and submit answers.</p>
+    </div>
+    <div class="card">
+      <h2>Can I retake quizzes?</h2>
+      <p class="text-muted mb-0">Yes. Your previous attempts are recorded, and you can retry any quiz as many times as you like.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

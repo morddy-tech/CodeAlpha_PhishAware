@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}Scenario feedback · {{ scenario.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="Breadcrumb" class="text-small text-muted" style="margin-bottom:var(--space-4);">
+  <a href="{% url 'simulations:list' %}">Simulations</a> / <a href="{{ scenario.get_absolute_url }}">{{ scenario.title }}</a> / Feedback
+</nav>
+
+<div class="container-narrow">
+  <div class="card text-center" style="margin-bottom:var(--space-5);">
+    <h1>Scenario complete</h1>
+    <div class="awareness-ring" style="margin-bottom:var(--space-4);">
+      <svg width="150" height="150" viewBox="0 0 150 150">
+        <circle cx="75" cy="75" r="66" fill="none" stroke="var(--surface-2)" stroke-width="12"/>
+        <circle cx="75" cy="75" r="66" fill="none" stroke="var(--success)" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ attempt.score|ring_dash }}" style="transition: stroke-dasharray 0.8s ease;"/>
+      </svg>
+      <div class="value">{{ attempt.score }}<span>% score</span></div>
+    </div>
+    <p class="text-muted">
+      You correctly identified <strong>{{ result.correct_detected }} of {{ result.total_indicators }}</strong> red flags.
+      {% if result.false_positives %}You also flagged {{ result.false_positives }} harmless clue(s).{% endif %}
+    </p>
+    {% if result.response_correct is not None %}
+      <span class="badge {% if result.response_correct %}badge-green{% else %}badge-red{% endif %}">
+        {% if result.response_correct %}{% include "includes/svg.html" with name="check-circle" %} Recommended action chosen{% else %}{% include "includes/svg.html" with name="x-circle" %} Recommended action not chosen{% endif %}
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="card" style="margin-bottom:var(--space-5);">
+    <h2>The red flags in this scenario</h2>
+    <div class="stack">
+      {% for flag in result.real_flags %}
+        <div class="feedback-item">
+          <span class="verdict {% if flag.id in result.selected_ids %}verdict-correct{% else %}verdict-wrong{% endif %}">
+            {% if flag.id in result.selected_ids %}{% include "includes/svg.html" with name="check" %}{% else %}{% include "includes/svg.html" with name="x" %}{% endif %}
+          </span>
+          <div>
+            <div class="flex" style="gap:var(--space-2);flex-wrap:wrap;">
+              <strong class="clue-title">{{ flag.title }}</strong>
+              <span class="badge badge-{% if flag.severity == 'high' %}red{% elif flag.severity == 'medium' %}amber{% else %}gray{% endif %}">{{ flag.get_severity_display }}</span>
+            </div>
+            <div class="text-small text-muted">{{ flag.description }}</div>
+            {% if flag.id not in result.selected_ids %}
+              <div class="alert alert-info mt-2 mb-0" style="margin-bottom:0;">
+                {% include "includes/svg.html" with name="eye" %}
+                <div>Missed. This was a real red flag: <strong>{{ flag.title|lower }}</strong>.</div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      {% for distractor in result.distractors %}
+        <div class="feedback-item">
+          <span class="verdict {% if distractor.id in result.selected_ids %}verdict-wrong{% else %}verdict-correct{% endif %}">
+            {% if distractor.id in result.selected_ids %}{% include "includes/svg.html" with name="x" %}{% else %}{% include "includes/svg.html" with name="check" %}{% endif %}
+          </span>
+          <div>
+            <div class="clue-title">{{ distractor.title }}</div>
+            <div class="text-small text-muted">{{ distractor.description }}</div>
+            {% if distractor.id in result.selected_ids %}
+              <div class="alert alert-warning mt-2 mb-0" style="margin-bottom:0;">
+                {% include "includes/svg.html" with name="alert-triangle" %}
+                <div>Not a red flag — this was a harmless distractor designed to test over-suspicion.</div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if result.response_option %}
+    <div class="card" style="margin-bottom:var(--space-5);">
+      <h2>Your recommended action</h2>
+      <div class="feedback-item" style="margin-bottom:0;">
+        <span class="verdict {% if result.response_correct %}verdict-correct{% else %}verdict-wrong{% endif %}">
+          {% if result.response_correct %}{% include "includes/svg.html" with name="check" %}{% else %}{% include "includes/svg.html" with name="x" %}{% endif %}
+        </span>
+        <div>
+          <div class="clue-title">{{ result.response_option.text }}</div>
+          {% if result.response_option.explanation %}
+            <div class="text-small text-muted">{{ result.response_option.explanation }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card" style="margin-bottom:var(--space-5);">
+    <h2>What actually happened</h2>
+    <p class="text-small">{{ scenario.explanation }}</p>
+  </div>
+
+  <div class="alert alert-info" role="note">
+    {% include "includes/svg.html" with name="shield" %}
+    <div><strong>Remember:</strong> this was a safe educational simulation. Real attackers build pages exactly like this — the skills you practiced here are your defense. In a real situation, report the message to your security team.</div>
+  </div>
+
+  <div class="flex" style="justify-content:center;gap:var(--space-3);flex-wrap:wrap;">
+    <a class="btn btn-primary" href="{{ scenario.get_absolute_url }}">Try again</a>
+    <a class="btn btn-secondary" href="{% url 'simulations:list' %}">Browse more scenarios</a>
+  </div>
+</div>
+{% endblock %}

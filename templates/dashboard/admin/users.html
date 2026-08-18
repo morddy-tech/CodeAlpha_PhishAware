@@ -1,0 +1,54 @@
+{% extends "dashboard/admin/base_admin.html" %}
+
+{% block admin_title %}Users{% endblock %}
+
+{% block admin_content %}
+<div class="filter-bar">
+  <form method="get">
+    <input class="search-input" type="search" name="q" value="{{ search }}" placeholder="Search users…" aria-label="Search users">
+    <select name="status" aria-label="User status">
+      <option value="">All statuses</option>
+      <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+      <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+      <option value="staff" {% if status == 'staff' %}selected{% endif %}>Staff</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Email</th>
+        <th>Modules done</th>
+        <th>Quiz avg</th>
+        <th>Scenarios</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>
+            <a href="{% url 'dashboard:admin_user_detail' row.user.pk %}">
+              {{ row.user.get_full_name|default:row.user.username }}
+            </a>
+            {% if row.user.is_staff %}<span class="badge badge-blue">Staff</span>{% endif %}
+          </td>
+          <td>{{ row.user.email|default:"—" }}</td>
+          <td>{{ row.modules_completed }}</td>
+          <td>{{ row.quiz_avg }}%</td>
+          <td>{{ row.scenario_attempts }}</td>
+          <td>
+            <span class="badge {% if row.user.is_active %}badge-green{% else %}badge-gray{% endif %}">{{ row.user.is_active|yesno:"Active,Inactive" }}</span>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-center text-muted">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

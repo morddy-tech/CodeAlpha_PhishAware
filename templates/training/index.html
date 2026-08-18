@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}Training modules{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom:var(--space-5);">
+  <div>
+    <h1 class="mb-0">Training modules</h1>
+    <p class="text-muted mb-0">Build your awareness, module by module.</p>
+  </div>
+  {% if user.is_authenticated %}
+    <div class="text-right" style="text-align:right;">
+      <div class="text-small text-muted">Completed</div>
+      <div class="stat-value"><strong>{{ completed_modules }}</strong> / {{ total_modules }}</div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="filter-bar">
+  <form method="get" role="search">
+    <input class="search-input" type="search" name="q" value="{{ search }}" placeholder="Search modules…" aria-label="Search modules">
+    <select name="difficulty" aria-label="Difficulty">
+      <option value="">All difficulties</option>
+      <option value="beginner" {% if difficulty == 'beginner' %}selected{% endif %}>Beginner</option>
+      <option value="intermediate" {% if difficulty == 'intermediate' %}selected{% endif %}>Intermediate</option>
+      <option value="advanced" {% if difficulty == 'advanced' %}selected{% endif %}>Advanced</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+
+{% if modules %}
+  <div class="grid grid-3">
+    {% for module in modules %}
+      <a href="{{ module.get_absolute_url }}" class="card card-hover module-card" style="display:block;">
+        <div class="flex-between">
+          <span class="badge badge-blue">{{ module.category }}</span>
+          <span class="badge badge-{% if module.difficulty == 'beginner' %}green{% elif module.difficulty == 'intermediate' %}amber{% else %}red{% endif %}">{{ module.get_difficulty_display }}</span>
+        </div>
+        <h3 style="margin-top:var(--space-3);">{{ module.title }}</h3>
+        <p class="text-small text-muted">{{ module.description|truncatechars:120 }}</p>
+        {% with rec=user_progress|dict_key:module.pk %}
+          {% if rec %}
+            <div class="progress-label">
+              <span>{{ rec.completed|yesno:"Completed,In progress" }}</span>
+              <span>{{ rec.progress_percentage }}%</span>
+            </div>
+            <div class="progress" role="progressbar" aria-valuenow="{{ rec.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill {% if rec.completed %}green{% endif %}" style="width: {{ rec.progress_percentage }}%;"></div>
+            </div>
+          {% else %}
+            <div class="progress">
+              <div class="progress-fill" style="width: 0%;"></div>
+            </div>
+          {% endif %}
+        {% endwith %}
+        <div class="module-meta">
+          <span>{% include "includes/svg.html" with name="layers" %}{{ module.lessons.count }} lessons</span>
+          <span>{% include "includes/svg.html" with name="clock" %}{{ module.estimated_minutes }} min</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    {% include "includes/svg.html" with name="book" %}
+    <h3>No modules found</h3>
+    <p>Try a different search or filter.</p>
+  </div>
+{% endif %}
+{% endblock %}

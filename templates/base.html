@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-profile-theme="{% if user.is_authenticated %}{{ user.profile.preferred_theme }}{% else %}system{% endif %}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site_name }}{% endblock %} · {{ site_name }}</title>
+  <meta name="description" content="{% block meta_description %}{{ site_tagline }}. Defensive, educational phishing awareness training: modules, simulations, quizzes and progress tracking.{% endblock %}">
+  <link rel="icon" href="{% static 'img/favicon.png' %}?v=2" type="image/png">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}?v=3">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <nav class="container nav" aria-label="Primary">
+      <a class="brand" href="{% url 'core:landing' %}">
+        <img src="{% static 'img/logo-sm.png' %}" alt="{{ site_name }} logo" class="brand-logo">
+        <span>{{ site_name }}</span>
+      </a>
+
+      <ul class="nav-links">
+        {% if user.is_authenticated %}
+          <li><a href="{% url 'dashboard:home' %}" {% if request.resolver_match.namespace == 'dashboard' and request.path|slice:':19' != '/dashboard/admin/' %}class="active"{% endif %}>{% include "includes/svg.html" with name="home" %}Dashboard</a></li>
+          <li><a href="{% url 'training:index' %}" {% if request.resolver_match.namespace == 'training' %}class="active"{% endif %}>{% include "includes/svg.html" with name="book" %}Training</a></li>
+          <li><a href="{% url 'simulations:list' %}" {% if request.resolver_match.namespace == 'simulations' %}class="active"{% endif %}>{% include "includes/svg.html" with name="shield-alert" %}Simulations</a></li>
+          <li><a href="{% url 'quizzes:list' %}" {% if request.resolver_match.namespace == 'quizzes' %}class="active"{% endif %}>{% include "includes/svg.html" with name="brain" %}Quizzes</a></li>
+          <li><a href="{% url 'progress:overview' %}" {% if request.resolver_match.namespace == 'progress' %}class="active"{% endif %}>{% include "includes/svg.html" with name="layers" %}Progress</a></li>
+          {% if user.is_staff %}
+            <li><a href="{% url 'dashboard:admin_dashboard' %}" {% if request.path|slice:':19' == '/dashboard/admin/' %}class="active"{% endif %}>{% include "includes/svg.html" with name="bar-chart" %}Admin</a></li>
+          {% endif %}
+        {% else %}
+          <li><a href="{% url 'training:index' %}" {% if request.resolver_match.namespace == 'training' %}class="active"{% endif %}>Training</a></li>
+          <li><a href="{% url 'simulations:list' %}" {% if request.resolver_match.namespace == 'simulations' %}class="active"{% endif %}>Simulations</a></li>
+          <li><a href="{% url 'quizzes:list' %}" {% if request.resolver_match.namespace == 'quizzes' %}class="active"{% endif %}>Quizzes</a></li>
+          <li><a href="{% url 'core:about' %}">About</a></li>
+          <li><a href="{% url 'core:security_tips' %}">Security Tips</a></li>
+        {% endif %}
+      </ul>
+
+      <div class="nav-actions">
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
+          {% include "includes/svg.html" with name="sun" %}
+        </button>
+        {% if user.is_authenticated %}
+          <a class="icon-btn desktop-only" href="{% url 'progress:notifications' %}" aria-label="Notifications">
+            {% include "includes/svg.html" with name="bell" %}
+            {% if unread_notifications %}<span class="badge-count">{{ unread_notifications }}</span>{% endif %}
+          </a>
+          <div class="user-menu-wrap">
+            <button id="user-chip" class="user-chip" type="button" aria-expanded="false" aria-haspopup="true">
+              <span class="avatar">
+                {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" alt="{{ user.username }} avatar">{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+              </span>
+              <span>{{ user.username }}</span>
+              {% include "includes/svg.html" with name="chevron-down" %}
+            </button>
+            <div id="user-dropdown" class="dropdown" role="menu">
+              <a href="{% url 'dashboard:home' %}" role="menuitem">{% include "includes/svg.html" with name="home" %}Dashboard</a>
+              <a href="{% url 'progress:overview' %}" role="menuitem">{% include "includes/svg.html" with name="layers" %}My Progress</a>
+              <a href="{% url 'progress:achievements' %}" role="menuitem">{% include "includes/svg.html" with name="award" %}Achievements</a>
+              <a href="{% url 'core:feedback' %}" role="menuitem">{% include "includes/svg.html" with name="message-square" %}Feedback</a>
+              <div class="dropdown-divider"></div>
+              <a href="{% url 'accounts:profile' %}" role="menuitem">{% include "includes/svg.html" with name="user" %}Profile</a>
+              <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost" style="width:100%;justify-content:flex-start;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);font-size:0.9rem;font-weight:500;">
+                  {% include "includes/svg.html" with name="log-out" %}Log out
+                </button>
+              </form>
+            </div>
+          </div>
+        {% else %}
+          <a class="btn btn-ghost" href="{% url 'accounts:login' %}">Log in</a>
+          <a class="btn btn-primary" href="{% url 'accounts:register' %}">Get started</a>
+        {% endif %}
+        <button id="nav-toggle" class="icon-btn nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+          {% include "includes/svg.html" with name="menu" %}
+        </button>
+      </div>
+    </nav>
+    <div id="mobile-menu" class="mobile-menu">
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard:home' %}">Dashboard</a>
+        <a href="{% url 'training:index' %}">Training</a>
+        <a href="{% url 'simulations:list' %}">Simulations</a>
+        <a href="{% url 'quizzes:list' %}">Quizzes</a>
+        <a href="{% url 'progress:overview' %}">Progress</a>
+        <a href="{% url 'progress:achievements' %}">Achievements</a>
+        <a href="{% url 'progress:notifications' %}">Notifications</a>
+        <a href="{% url 'core:feedback' %}">Feedback</a>
+        {% if user.is_staff %}<a href="{% url 'dashboard:admin_dashboard' %}">Admin Dashboard</a>{% endif %}
+        <a href="{% url 'accounts:profile' %}">Profile</a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-block">Log out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'training:index' %}">Training</a>
+        <a href="{% url 'simulations:list' %}">Simulations</a>
+        <a href="{% url 'quizzes:list' %}">Quizzes</a>
+        <a href="{% url 'core:about' %}">About</a>
+        <a href="{% url 'core:security_tips' %}">Security Tips</a>
+        <a href="{% url 'accounts:login' %}">Log in</a>
+        <a href="{% url 'accounts:register' %}">Create account</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main id="main" class="main">
+    <div class="container">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" data-dismiss role="alert">
+            {% if message.tags == 'success' %}{% include "includes/svg.html" with name="check-circle" %}{% elif message.tags == 'error' %}{% include "includes/svg.html" with name="alert-triangle" %}{% else %}{% include "includes/svg.html" with name="info" %}{% endif %}
+            <div>{{ message }}</div>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h4>{{ site_name }}</h4>
+          <p class="footer-disclaimer" style="max-width:34rem;">
+            A defensive cybersecurity education platform built for the CodeAlpha
+            Cybersecurity Internship (Task 2 — Phishing Awareness Training).
+            All simulations are educational; no real credentials are ever
+            collected, stored, or transmitted.
+          </p>
+        </div>
+        <div>
+          <h4>Learn</h4>
+          <ul class="footer-links">
+            <li><a href="{% url 'training:index' %}">Training Modules</a></li>
+            <li><a href="{% url 'simulations:list' %}">Simulations</a></li>
+            <li><a href="{% url 'quizzes:list' %}">Quizzes</a></li>
+            <li><a href="{% url 'core:security_tips' %}">Security Tips</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Account</h4>
+          <ul class="footer-links">
+            {% if user.is_authenticated %}
+              <li><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+              <li><a href="{% url 'progress:overview' %}">Progress</a></li>
+              <li><a href="{% url 'progress:achievements' %}">Achievements</a></li>
+              <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
+            {% else %}
+              <li><a href="{% url 'accounts:register' %}">Create account</a></li>
+              <li><a href="{% url 'accounts:login' %}">Log in</a></li>
+            {% endif %}
+          </ul>
+        </div>
+        <div>
+          <h4>About</h4>
+          <ul class="footer-links">
+            <li><a href="{% url 'core:about' %}">About PhishAware</a></li>
+            <li><a href="{% url 'core:faq' %}">FAQ</a></li>
+            <li><a href="{% url 'core:privacy' %}">Privacy</a></li>
+            <li><a href="{{ github_url }}">GitHub Project</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© {% now "Y" %} {{ site_name }} · CodeAlpha Cybersecurity Internship</div>
+        <div>Built by Ifedayo Matthew · Defense only</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/main.js' %}?v=3"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

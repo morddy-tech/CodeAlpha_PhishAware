@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container-narrow">
+  <div class="flex-between" style="margin-bottom:var(--space-4);">
+    <div>
+      <h1 class="mb-0">Notifications</h1>
+      <p class="text-muted mb-0">{{ unread_count }} unread</p>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="mark_all">
+      <button type="submit" class="btn btn-secondary" {% if not unread_count %}disabled{% endif %}>Mark all read</button>
+    </form>
+  </div>
+
+  {% if notifications %}
+    <div class="stack">
+      {% for notification in notifications %}
+        <div class="card card-pad-sm" style="{% if not notification.read %}border-color:var(--primary);{% endif %}">
+          <div class="flex-between">
+            <div class="flex" style="gap:var(--space-3);align-items:flex-start;">
+              <span class="feature-icon" style="margin:0;">
+                {% if notification.notification_type == 'achievement' %}{% include "includes/svg.html" with name="award" %}
+                {% elif notification.notification_type == 'quiz' %}{% include "includes/svg.html" with name="brain" %}
+                {% elif notification.notification_type == 'training' %}{% include "includes/svg.html" with name="book" %}
+                {% elif notification.notification_type == 'reminder' %}{% include "includes/svg.html" with name="bell" %}
+                {% else %}{% include "includes/svg.html" with name="info" %}{% endif %}
+              </span>
+              <div>
+                <strong>{{ notification.title }}</strong>
+                {% if not notification.read %}<span class="badge badge-blue">New</span>{% endif %}
+                <p class="text-small text-muted mb-0">{{ notification.message }}</p>
+                <div class="text-xs text-faint mt-1">{{ notification.created_at|date:"M d, Y H:i" }}</div>
+              </div>
+            </div>
+            {% if not notification.read %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_one">
+                <input type="hidden" name="notification_id" value="{{ notification.pk }}">
+                <button type="submit" class="btn btn-ghost" aria-label="Mark notification as read">{% include "includes/svg.html" with name="check" %}</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      {% include "includes/svg.html" with name="bell" %}
+      <h3>No notifications</h3>
+      <p>You'll see training reminders, quiz results, and achievements here.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
