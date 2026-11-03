@@ -4,16 +4,16 @@
 
 {% block admin_content %}
 <div class="grid grid-4">
-  <a href="/admin/training/trainingmodule/" class="card card-hover" style="display:block;">
+  <a href="{% url 'admin:training_trainingmodule_changelist' %}" class="card card-hover" style="display:block;">
     <div class="stat"><span class="icon">{% include "includes/svg.html" with name="layers" %}</span><div class="value">{{ modules }}</div><div class="label">Training modules</div></div>
   </a>
-  <a href="/admin/training/traininglesson/" class="card card-hover" style="display:block;">
+  <a href="{% url 'admin:training_traininglesson_changelist' %}" class="card card-hover" style="display:block;">
     <div class="stat"><span class="icon" style="background:var(--accent-soft);color:var(--accent);">{% include "includes/svg.html" with name="book" %}</span><div class="value">{{ lessons }}</div><div class="label">Lessons</div></div>
   </a>
-  <a href="/admin/simulations/phishingscenario/" class="card card-hover" style="display:block;">
+  <a href="{% url 'admin:simulations_phishingscenario_changelist' %}" class="card card-hover" style="display:block;">
     <div class="stat"><span class="icon">{% include "includes/svg.html" with name="shield-alert" %}</span><div class="value">{{ scenarios }}</div><div class="label">Scenarios</div></div>
   </a>
-  <a href="/admin/quizzes/quiz/" class="card card-hover" style="display:block;">
+  <a href="{% url 'admin:quizzes_quiz_changelist' %}" class="card card-hover" style="display:block;">
     <div class="stat"><span class="icon" style="background:var(--warning-soft);color:var(--warning);">{% include "includes/svg.html" with name="brain" %}</span><div class="value">{{ quizzes }}</div><div class="label">Quizzes</div></div>
   </a>
 </div>
@@ -23,14 +23,14 @@
   <p class="text-muted">Detailed editing of content is handled in the Django admin, which enforces staff permissions.</p>
   <div class="grid grid-2">
     <div class="stack">
-      <a class="btn btn-secondary btn-block" href="/admin/training/trainingmodule/">Modules &amp; lessons</a>
-      <a class="btn btn-secondary btn-block" href="/admin/simulations/phishingscenario/">Scenarios &amp; indicators</a>
-      <a class="btn btn-secondary btn-block" href="/admin/quizzes/question/">Questions &amp; answers</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:training_trainingmodule_changelist' %}">Modules &amp; lessons</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:simulations_phishingscenario_changelist' %}">Scenarios &amp; indicators</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:quizzes_question_changelist' %}">Questions &amp; answers</a>
     </div>
     <div class="stack">
-      <a class="btn btn-secondary btn-block" href="/admin/progress/achievement/">Achievements</a>
-      <a class="btn btn-secondary btn-block" href="/admin/quizzes/quizattempt/">Quiz attempts</a>
-      <a class="btn btn-secondary btn-block" href="/admin/simulations/scenarioattempt/">Scenario attempts</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:progress_achievement_changelist' %}">Achievements</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:quizzes_quizattempt_changelist' %}">Quiz attempts</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:simulations_scenarioattempt_changelist' %}">Scenario attempts</a>
     </div>
   </div>
 </div>

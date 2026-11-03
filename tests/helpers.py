@@ -11,7 +11,9 @@ PASSWORD = "Str0ngPass!word"
 
 
 def create_user(username="alice", email="alice@example.com", **kwargs):
-    user = User.objects.create_user(
+    # Deliberately do not create a profile here: the post_save signal must be
+    # responsible for it, so the test suite actually guards that behaviour.
+    return User.objects.create_user(
         username=username,
         email=email,
         password=PASSWORD,
@@ -19,10 +21,6 @@ def create_user(username="alice", email="alice@example.com", **kwargs):
         last_name=kwargs.pop("last_name", "Example"),
         **kwargs,
     )
-    from accounts.models import UserProfile
-
-    UserProfile.objects.get_or_create(user=user)
-    return user
 
 
 def create_staff(username="admin", email="admin@example.com"):
@@ -51,12 +49,19 @@ def create_module(title="Test Module", with_lessons=2, **kwargs):
     return module
 
 
-def create_quiz(title="Test Quiz", questions=3, passing_score=70, module=None):
+def create_quiz(
+    title="Test Quiz",
+    questions=3,
+    passing_score=70,
+    module=None,
+    time_limit=0,
+):
     quiz = Quiz.objects.create(
         title=title,
         description="A test quiz.",
         module=module,
         passing_score=passing_score,
+        time_limit=time_limit,
         published=True,
     )
     for index in range(questions):

@@ -17,7 +17,9 @@ class EmailOrUsernameModelBackend(ModelBackend):
                 user = UserModel.objects.get(email__iexact=identifier)
             else:
                 user = UserModel.objects.get(username__iexact=identifier)
-        except UserModel.DoesNotExist:
+        except (UserModel.DoesNotExist, UserModel.MultipleObjectsReturned):
+            # Keep the timing close to a real password check and never reveal
+            # whether a duplicate or missing identity exists.
             UserModel().set_password(password)
             return None
 

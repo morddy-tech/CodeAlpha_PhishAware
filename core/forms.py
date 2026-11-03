@@ -13,7 +13,14 @@ class FeedbackForm(forms.ModelForm):
             "message": forms.Textarea(
                 attrs={
                     "rows": 4,
-                    "placeholder": "Tell us what you think about the training…",
+                    "maxlength": 2000,
+                    "placeholder": "Tell us what you think about the training...",
                 }
             ),
         }
+
+    def clean_message(self):
+        message = (self.cleaned_data.get("message") or "").strip()
+        if len(message) > 2000:
+            raise forms.ValidationError("Feedback must be 2,000 characters or fewer.")
+        return message

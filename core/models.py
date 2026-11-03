@@ -23,7 +23,7 @@ class Feedback(models.Model):
         related_name="feedback",
     )
     rating = models.PositiveSmallIntegerField(choices=Rating.choices)
-    message = models.TextField(blank=True)
+    message = models.TextField(blank=True, max_length=2000)
     category = models.CharField(
         max_length=20,
         choices=Category.choices,

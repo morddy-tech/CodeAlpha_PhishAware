@@ -64,15 +64,15 @@
               <div class="logo">{{ scenario.site_name|truncatechars:12 }}</div>
               <h3>{{ scenario.site_name }}</h3>
               <p class="text-small text-muted">{{ scenario.body|linebreaksbr }}</p>
-              <div class="sim-banner">SIMULATION: Do not use a real password. Any text you type here is discarded instantly — never stored or transmitted.</div>
+              <div class="sim-banner">SIMULATION ONLY: Do not enter a real password. These demo fields are not part of the scoring form; anything you type stays in this browser tab and is never submitted, stored, or transmitted.</div>
               <div style="text-align:left;">
                 <div class="form-field">
                   <label for="sim-username">Username (dummy)</label>
-                  <input type="text" id="sim-username" name="sim_username" autocomplete="off" placeholder="training-sample-user">
+                  <input type="text" id="sim-username" autocomplete="off" placeholder="training-sample-user" data-simulation-only="true">
                 </div>
                 <div class="form-field">
                   <label for="sim-password">Password (dummy)</label>
-                  <input type="password" id="sim-password" name="sim_password" autocomplete="off" placeholder="Do not enter a real password">
+                  <input type="password" id="sim-password" autocomplete="off" placeholder="Do not enter a real password" data-simulation-only="true">
                 </div>
                 <div class="alert alert-warning" role="note">
                   {% include "includes/svg.html" with name="alert-triangle" %}

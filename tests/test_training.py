@@ -12,7 +12,7 @@ class TrainingTests(TestCase):
         self.user = create_user()
 
     def test_module_listing_shows_published_only(self):
-        published = create_module(title="Visible Module")
+        create_module(title="Visible Module")
         create_module(title="Hidden Module", published=False)
         response = self.client.get(reverse("training:index"))
         self.assertContains(response, "Visible Module")
@@ -83,7 +83,7 @@ class TrainingTests(TestCase):
         module = create_module(with_lessons=1)
         from training.models import TrainingLesson
 
-        hidden = TrainingLesson.objects.create(
+        TrainingLesson.objects.create(
             module=module, title="Hidden Lesson", content="x", published=False
         )
         response = self.client.get(

@@ -1,7 +1,9 @@
 """Aggregation helpers for the user dashboard and the admin analytics dashboard."""
 
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, FloatField, IntegerField, OuterRef, Subquery
+from django.db.models.functions import Coalesce
+from django.urls import reverse
 
 from core.models import Feedback
 from progress.models import ModuleProgress
@@ -13,36 +15,54 @@ from training.models import TrainingModule
 def recent_activity(user, limit=6):
     """Combined, time-sorted list of the user's recent learning events."""
     events = []
-    for attempt in user.quiz_attempts.filter(completed_at__isnull=False).select_related("quiz")[:limit]:
+    for attempt in (
+        user.quiz_attempts.filter(completed_at__isnull=False)
+        .select_related("quiz")
+        .order_by("-completed_at")[:limit]
+    ):
         events.append(
             {
                 "kind": "quiz",
                 "title": f"Quiz completed: {attempt.quiz.title}",
-                "detail": f"{attempt.percentage}% · {'Passed' if attempt.passed else 'Needs review'}",
+                "detail": f"{attempt.percentage}% - {'Passed' if attempt.passed else 'Needs review'}",
                 "when": attempt.completed_at,
-                "url": f"/quizzes/attempt/{attempt.pk}/result/",
+                "url": reverse(
+                    "quizzes:result", kwargs={"attempt_id": attempt.pk}
+                ),
                 "icon": "brain",
             }
         )
-    for completion in user.lesson_completions.select_related("lesson")[:limit]:
+    for completion in (
+        user.lesson_completions.select_related("lesson__module")
+        .order_by("-completed_at")[:limit]
+    ):
         events.append(
             {
                 "kind": "lesson",
                 "title": f"Lesson completed: {completion.lesson.title}",
                 "detail": completion.lesson.module.title,
                 "when": completion.completed_at,
-                "url": f"/training/lesson/{completion.lesson.slug}/",
+                "url": reverse(
+                    "training:lesson_detail",
+                    kwargs={"slug": completion.lesson.slug},
+                ),
                 "icon": "book",
             }
         )
-    for attempt in user.scenario_attempts.select_related("scenario")[:limit]:
+    for attempt in (
+        user.scenario_attempts.select_related("scenario")
+        .order_by("-completed_at")[:limit]
+    ):
         events.append(
             {
                 "kind": "scenario",
                 "title": f"Scenario reviewed: {attempt.scenario.title}",
                 "detail": f"Score {attempt.score}%",
                 "when": attempt.completed_at,
-                "url": f"/simulations/scenario/{attempt.scenario.pk}/",
+                "url": reverse(
+                    "simulations:scenario_detail",
+                    kwargs={"pk": attempt.scenario.pk},
+                ),
                 "icon": "shield",
             }
         )
@@ -150,16 +170,64 @@ def scenario_performance():
     )
 
 
-def indicator_performance():
-    """Most commonly missed indicator types, from scenario attempts data."""
-    from simulations.models import ScenarioIndicator
+def quiz_overall_average():
+    """Mean percentage across every completed quiz attempt.
 
-    return list(
-        ScenarioIndicator.objects.filter(is_distractor=False)
-        .values("indicator_type")
-        .annotate(total=Count("id"))
-        .order_by("-total")
+    This is an attempt-weighted average, not an average of per-quiz averages,
+    so a quiz with more submissions contributes proportionally.
+    """
+    value = QuizAttempt.objects.filter(completed_at__isnull=False).aggregate(
+        avg=Avg("percentage")
+    )["avg"]
+    return round(value) if value is not None else 0
+
+
+def indicator_performance():
+    """Real-flag miss rates calculated from persisted scenario selections.
+
+    Legacy attempts that predate selected-ID storage and contain no clue
+    selections are skipped rather than being counted as complete misses.
+    """
+    from collections import defaultdict
+
+    stats = defaultdict(
+        lambda: {
+            "total": 0,
+            "missed": 0,
+        }
     )
+    attempts = ScenarioAttempt.objects.select_related("scenario").prefetch_related(
+        "scenario__indicators"
+    )
+    for attempt in attempts:
+        if not attempt.selected_indicator_ids and attempt.identified_indicators == 0:
+            continue
+        selected = set(attempt.selected_indicator_ids or [])
+        for indicator in attempt.scenario.indicators.all():
+            if indicator.is_distractor:
+                continue
+            row = stats[
+                (indicator.indicator_type, indicator.get_indicator_type_display())
+            ]
+            row["total"] += 1
+            if indicator.id not in selected:
+                row["missed"] += 1
+
+    rows = []
+    for (indicator_type, label), values in stats.items():
+        total = values["total"]
+        missed = values["missed"]
+        rows.append(
+            {
+                "indicator_type": indicator_type,
+                "label": label,
+                "total": total,
+                "missed": missed,
+                "miss_rate": round(missed / total * 100) if total else 0,
+            }
+        )
+    rows.sort(key=lambda row: (-row["miss_rate"], -row["missed"], row["label"]))
+    return rows
 
 
 def training_completion_trend():
@@ -183,7 +251,36 @@ def training_completion_trend():
 
 
 def all_users_data(search="", filter_status=""):
-    users = User.objects.all().prefetch_related("profile")
+    module_counts = (
+        ModuleProgress.objects.filter(user=OuterRef("pk"), completed=True)
+        .values("user")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+    quiz_averages = (
+        QuizAttempt.objects.filter(
+            user=OuterRef("pk"), completed_at__isnull=False
+        )
+        .values("user")
+        .annotate(avg=Avg("percentage"))
+        .values("avg")
+    )
+    scenario_counts = (
+        ScenarioAttempt.objects.filter(user=OuterRef("pk"))
+        .values("user")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
+    users = User.objects.annotate(
+        modules_completed=Coalesce(
+            Subquery(module_counts, output_field=IntegerField()), 0
+        ),
+        quiz_avg=Subquery(quiz_averages, output_field=FloatField()),
+        scenario_attempt_count=Coalesce(
+            Subquery(scenario_counts, output_field=IntegerField()), 0
+        ),
+    )
     if search:
         from django.db.models import Q
 
@@ -202,18 +299,12 @@ def all_users_data(search="", filter_status=""):
 
     rows = []
     for user in users[:200]:
-        modules_done = ModuleProgress.objects.filter(
-            user=user, completed=True
-        ).count()
-        quiz_avg = user.quiz_attempts.filter(completed_at__isnull=False).aggregate(
-            avg=Avg("percentage")
-        )["avg"]
         rows.append(
             {
                 "user": user,
-                "modules_completed": modules_done,
-                "quiz_avg": round(quiz_avg) if quiz_avg else 0,
-                "scenario_attempts": user.scenario_attempts.count(),
+                "modules_completed": user.modules_completed,
+                "quiz_avg": round(user.quiz_avg) if user.quiz_avg is not None else 0,
+                "scenario_attempts": user.scenario_attempt_count,
             }
         )
     return rows

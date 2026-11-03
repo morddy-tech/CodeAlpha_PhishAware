@@ -115,6 +115,13 @@ class QuizAttempt(models.Model):
 
     class Meta:
         ordering = ["-started_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "quiz"],
+                condition=models.Q(completed_at__isnull=True),
+                name="unique_open_quiz_attempt",
+            )
+        ]
         indexes = [
             models.Index(fields=["user", "quiz"]),
             models.Index(fields=["-started_at"]),

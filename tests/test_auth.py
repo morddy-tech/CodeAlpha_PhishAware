@@ -1,11 +1,17 @@
 """Authentication tests: registration, login, logout, password reset."""
 
+import io
+import tempfile
+
 from django.contrib.auth.models import User
 from django.core import mail
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
+from accounts.models import UserProfile
 from tests.helpers import PASSWORD, create_user
 
 
@@ -124,6 +130,52 @@ class AuthTests(TestCase):
         response = self.client.post(reverse("accounts:logout"), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_profile_page_repairs_missing_profile(self):
+        user = create_user()
+        self.client.force_login(user)
+        user.profile.delete()
+
+        response = self.client.get(reverse("accounts:profile"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())
+
+    def test_avatar_upload_accepts_valid_png(self):
+        user = create_user()
+        self.client.force_login(user)
+        buffer = io.BytesIO()
+        Image.new("RGB", (8, 8), color="white").save(buffer, format="PNG")
+        upload = SimpleUploadedFile(
+            "avatar.png", buffer.getvalue(), content_type="image/png"
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with self.settings(MEDIA_ROOT=media_root):
+                response = self.client.post(
+                    reverse("accounts:avatar_upload"), {"avatar": upload}
+                )
+                self.assertEqual(response.status_code, 302)
+                user.profile.refresh_from_db()
+                self.assertTrue(user.profile.avatar)
+
+    def test_avatar_upload_rejects_fake_image(self):
+        user = create_user()
+        self.client.force_login(user)
+        upload = SimpleUploadedFile(
+            "avatar.png", b"not really an image", content_type="image/png"
+        )
+
+        with tempfile.TemporaryDirectory() as media_root:
+            with self.settings(MEDIA_ROOT=media_root):
+                response = self.client.post(
+                    reverse("accounts:avatar_upload"),
+                    {"avatar": upload},
+                    follow=True,
+                )
+                self.assertEqual(response.status_code, 200)
+                user.profile.refresh_from_db()
+                self.assertFalse(user.profile.avatar)
 
     def test_password_reset_sends_email(self):
         create_user(username="alice", email="alice@example.com")

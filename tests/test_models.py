@@ -1,16 +1,24 @@
 """Model-level tests: constraints, relationships, unique fields, progress."""
 
+import importlib
+
+from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.test import TestCase
 
+from accounts.models import UserProfile
 from progress.models import (
     Achievement,
     LessonCompletion,
     ModuleProgress,
     UserAchievement,
 )
-from progress.services import record_lesson_completion, update_module_progress
+from progress.services import (
+    create_notification,
+    record_lesson_completion,
+    update_module_progress,
+)
 from tests.helpers import PASSWORD, create_module, create_quiz, create_user
 
 
@@ -19,6 +27,40 @@ class ModelConstraintTests(TestCase):
         user = create_user()
         self.assertTrue(hasattr(user, "profile"))
         self.assertEqual(str(user.profile), f"Profile of {user.username}")
+
+    def test_superuser_gets_profile(self):
+        user = User.objects.create_superuser(
+            username="root", email="root@example.com", password=PASSWORD
+        )
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())
+
+    def test_staff_created_without_registration_gets_profile(self):
+        user = User.objects.create_user(
+            username="staffer",
+            email="staff@example.com",
+            password=PASSWORD,
+            is_staff=True,
+        )
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())
+
+    def test_profile_backfill_repairs_legacy_user(self):
+        user = create_user()
+        user.profile.delete()
+        self.assertFalse(UserProfile.objects.filter(user=user).exists())
+
+        migration = importlib.import_module(
+            "accounts.migrations.0002_backfill_user_profiles"
+        )
+        migration.backfill_profiles(apps, None)
+
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())
+
+    def test_notification_repairs_missing_profile(self):
+        user = create_user()
+        user.profile.delete()
+        notification = create_notification(user, "Test", "Test message")
+        self.assertIsNotNone(notification)
+        self.assertTrue(UserProfile.objects.filter(user=user).exists())
 
     def test_lesson_slug_unique_per_module(self):
         module = create_module(with_lessons=0)

@@ -35,7 +35,7 @@
           <h3 style="margin-top:var(--space-3);">{{ quiz.title }}</h3>
           <p class="text-small text-muted">{{ quiz.description|truncatechars:120 }}</p>
           <div class="module-meta">
-            <span>{% include "includes/svg.html" with name="list" %}{{ quiz.questions.count }} questions</span>
+            <span>{% include "includes/svg.html" with name="list" %}{{ quiz.question_count }} questions</span>
             <span>{% include "includes/svg.html" with name="target" %}Pass: {{ quiz.passing_score }}%</span>
             {% if attempt %}
               <span class="badge {% if attempt.passed %}badge-green{% else %}badge-red{% endif %}">{{ attempt.percentage }}%</span>

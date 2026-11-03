@@ -1,8 +1,12 @@
 """Application-level rate limiting for sensitive endpoints.
 
-Uses Django's cache framework (locmem by default) to limit how often a
-client can submit to authentication-sensitive endpoints. This is a defensive
-abuse-protection measure and is not used for any offensive purpose.
+Uses Django's cache framework (locmem by default, Redis in production) to limit
+how often a client can submit to authentication-sensitive endpoints. This is a
+defensive abuse-protection measure and is not used for any offensive purpose.
+
+Only ``REMOTE_ADDR`` is trusted unless ``TRUST_PROXY_HEADERS`` is explicitly
+enabled for a deployment whose proxy overwrites client-supplied forwarding
+headers.
 """
 
 import functools
@@ -11,22 +15,48 @@ import time
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpRequest, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse
 
 logger = logging.getLogger("security")
 
 
+def client_ip(request):
+    """Return the client address, honouring X-Forwarded-For only when trusted."""
+    if getattr(settings, "TRUST_PROXY_HEADERS", False):
+        forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        if forwarded_for:
+            # The left-most entry is the original client when (and only when)
+            # the edge proxy sanitises the header and appends the chain.
+            candidate = forwarded_for.split(",")[0].strip()
+            if candidate:
+                return candidate
+    return request.META.get("REMOTE_ADDR", "unknown")
+
+
 def _client_key(request, scope):
-    ip = request.META.get("REMOTE_ADDR", "unknown")
-    return f"ratelimit:{scope}:{ip}"
+    return f"ratelimit:{scope}:{client_ip(request)}"
 
 
-def rate_limit(scope, attempts=None, window=None, lockout=None):
-    """Decorator that limits the number of requests per client IP per window.
+def _too_many(retry_after):
+    response = HttpResponse(
+        "Too many requests. Please try again later.",
+        status=429,
+        content_type="text/plain",
+    )
+    response.headers["Retry-After"] = str(max(1, int(retry_after)))
+    return response
 
-    Works with both plain views (def view(request)) and view methods
-    (def dispatch(self, request)). After the limit is exceeded the client is
-    locked out for `lockout` seconds (defaults to the configured value).
+
+def rate_limit(scope, attempts=None, window=None, lockout=None, key_func=None):
+    """Decorate a view with a cache-backed rate limit.
+
+    Works with both plain views (``def view(request)``) and view methods
+    (``def dispatch(self, request)``). Only state-changing methods are counted
+    so ordinary page views are never blocked.
+
+    ``key_func`` may return one or more full cache keys. If any bucket exceeds
+    its limit the request is rejected with HTTP 429 and a ``Retry-After``
+    header.
     """
 
     attempts = attempts or getattr(settings, "RATE_LIMIT_ATTEMPTS", 5)
@@ -40,28 +70,35 @@ def rate_limit(scope, attempts=None, window=None, lockout=None):
             if request is None or request.method not in {"POST", "PUT", "PATCH"}:
                 return view(*args, **kwargs)
 
-            key = _client_key(request, scope)
-            lockout_key = f"{key}:lockout"
+            keys = (
+                key_func(request)
+                if key_func is not None
+                else [_client_key(request, scope)]
+            )
+            keys = [key for key in keys if key]
+            if not keys:
+                keys = [_client_key(request, scope)]
 
-            if cache.get(lockout_key) is not None:
-                logger.warning("Rate limit: client %s locked out for %s", key, scope)
-                return HttpResponseForbidden(
-                    "Too many requests. Please try again later.",
-                    content_type="text/plain",
-                )
+            for key in keys:
+                if cache.get(f"{key}:lockout") is not None:
+                    logger.warning("Rate limit: client locked out for %s", scope)
+                    return _too_many(lockout)
 
             now = int(time.time())
-            window_key = f"{key}:window:{now // window}"
-            count = cache.get(window_key, 0) + 1
-            cache.set(window_key, count, timeout=window * 2)
+            exceeded = False
+            for key in keys:
+                window_key = f"{key}:window:{now // window}"
+                count = cache.get(window_key, 0) + 1
+                cache.set(window_key, count, timeout=window * 2)
+                if count > attempts:
+                    exceeded = True
 
-            if count > attempts:
-                cache.set(lockout_key, True, timeout=lockout)
-                logger.warning("Rate limit exceeded: client %s blocked on %s", key, scope)
-                return HttpResponseForbidden(
-                    "Too many attempts. Please wait a few minutes and try again.",
-                    content_type="text/plain",
-                )
+            if exceeded:
+                for key in keys:
+                    cache.set(f"{key}:lockout", True, timeout=lockout)
+                logger.warning("Rate limit exceeded: client blocked on %s", scope)
+                return _too_many(lockout)
+
             return view(*args, **kwargs)
 
         return wrapper

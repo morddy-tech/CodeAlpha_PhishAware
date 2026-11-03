@@ -2,4 +2,9 @@ from django.apps import AppConfig
 
 
 class AccountsConfig(AppConfig):
-    name = 'accounts'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "accounts"
+
+    def ready(self):
+        # Register the post_save receiver exactly once when the app loads.
+        from accounts import signals  # noqa: F401

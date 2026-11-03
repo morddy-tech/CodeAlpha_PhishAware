@@ -9,6 +9,7 @@ from dashboard.services import (
     indicator_performance,
     module_popularity,
     most_difficult_questions,
+    quiz_overall_average,
     quiz_performance,
     recent_activity,
     recommended_training,
@@ -20,7 +21,7 @@ from progress.models import Achievement
 from progress.services import security_awareness_score, total_training_progress, user_stats
 from quizzes.models import Quiz
 from simulations.models import PhishingScenario
-from training.models import TrainingModule, TrainingLesson
+from training.models import TrainingLesson, TrainingModule
 
 
 @login_required
@@ -122,16 +123,22 @@ def admin_content(request):
 @login_required
 @user_passes_test(staff_required, login_url="core:forbidden")
 def admin_analytics(request):
+    completion_trend = training_completion_trend()
     return render(
         request,
         "dashboard/admin/analytics.html",
         {
             "module_popularity": module_popularity(),
             "quiz_performance": quiz_performance(),
+            "quiz_overall_avg": quiz_overall_average(),
             "difficult_questions": most_difficult_questions(),
             "scenario_performance": scenario_performance(),
             "indicator_performance": indicator_performance(),
-            "completion_trend": training_completion_trend(),
+            "completion_trend": completion_trend,
+            "completion_trend_max": max(
+                (week["count"] for week in completion_trend), default=0
+            )
+            or 1,
             "active_tab": "analytics",
         },
     )

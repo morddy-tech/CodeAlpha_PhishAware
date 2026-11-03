@@ -38,7 +38,7 @@
         {% endfor %}
       </div>
       {% endwith %}
-      <div class="text-xs text-muted mt-3">Avg score across quizzes: {% for row in quiz_performance %}{% if forloop.first %}{{ row.avg|floatformat:0 }}%{% endif %}{% endfor %}</div>
+      <div class="text-xs text-muted mt-3">Overall quiz average: {{ quiz_overall_avg }}%</div>
     {% else %}
       <p class="text-muted mb-0">No data yet.</p>
     {% endif %}
@@ -88,23 +88,25 @@
   </div>
 
   <div class="card">
-    <h2>Common red-flag types</h2>
+    <h2>Most-missed red-flag types</h2>
     {% if indicator_performance %}
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Indicator type</th><th>Scenarios</th></tr></thead>
+          <thead><tr><th>Indicator type</th><th>Presented</th><th>Missed</th><th>Miss rate</th></tr></thead>
           <tbody>
             {% for row in indicator_performance %}
               <tr>
-                <td>{{ row.indicator_type|title }}</td>
+                <td>{{ row.label }}</td>
                 <td>{{ row.total }}</td>
+                <td>{{ row.missed }}</td>
+                <td>{{ row.miss_rate }}%</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     {% else %}
-      <p class="text-muted mb-0">No data yet.</p>
+      <p class="text-muted mb-0">No scenario selections recorded yet.</p>
     {% endif %}
   </div>
 
@@ -112,13 +114,10 @@
     <h2>Modules completed (last 8 weeks)</h2>
     {% if completion_trend %}
       <div class="chart-bars">
-        {% with max=completion_trend.7.count %}
-          {% if max == 0 %}{% with max=1 %}{% endwith %}{% endif %}
-        {% endwith %}
         {% for week in completion_trend %}
           <div class="chart-row">
             <span>{{ week.label }}</span>
-            <div class="bar-track"><div class="bar-fill" style="width: {{ week.count }}%;"></div></div>
+            <div class="bar-track"><div class="bar-fill" style="width: {% widthratio week.count completion_trend_max 100 %}%;"></div></div>
             <span class="bar-val">{{ week.count }}</span>
           </div>
         {% endfor %}

@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from simulations.models import PhishingScenario, ScenarioAttempt
@@ -9,8 +10,15 @@ def scenario_list(request):
     scenario_type = request.GET.get("type", "")
     difficulty = request.GET.get("difficulty", "")
 
-    scenarios = PhishingScenario.objects.filter(published=True).prefetch_related(
-        "indicators"
+    scenarios = (
+        PhishingScenario.objects.filter(published=True)
+        .prefetch_related("indicators")
+        .annotate(
+            real_flag_count=Count(
+                "indicators",
+                filter=Q(indicators__is_distractor=False),
+            )
+        )
     )
     if scenario_type:
         scenarios = scenarios.filter(scenario_type=scenario_type)
@@ -72,6 +80,31 @@ def scenario_submit(request, pk):
 
     result = score_scenario(scenario, selected_ids, selected_response)
     attempt = record_scenario_attempt(request.user, scenario, result)
+
+    # Post-Redirect-Get: refreshing the feedback page must never score again.
+    return redirect("simulations:scenario_feedback", attempt_id=attempt.pk)
+
+
+@login_required
+def scenario_feedback(request, attempt_id):
+    attempt = get_object_or_404(
+        ScenarioAttempt.objects.select_related("scenario").prefetch_related(
+            "scenario__indicators", "scenario__response_options"
+        ),
+        pk=attempt_id,
+        user=request.user,
+    )
+    scenario = attempt.scenario
+    result = score_scenario(
+        scenario,
+        attempt.selected_indicator_ids,
+        attempt.selected_response_id,
+    )
+    # Legacy attempts created before selected clue IDs were persisted only have
+    # aggregate counts. Preserve their displayed result without inventing data.
+    if not attempt.selected_indicator_ids:
+        result["correct_detected"] = attempt.identified_indicators
+        result["score"] = attempt.score
 
     return render(
         request,

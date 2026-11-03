@@ -35,4 +35,6 @@ if settings.SERVE_STATIC_FILES:
             kwargs={"insecure": True},
         ),
     ]
+
+if settings.SERVE_MEDIA_FILES:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

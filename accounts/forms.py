@@ -1,6 +1,11 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    UserChangeForm,
+    UserCreationForm,
+)
 from django.contrib.auth.models import User
+from PIL import Image, UnidentifiedImageError
 
 from accounts.models import UserProfile
 
@@ -29,6 +34,41 @@ class RegisterForm(UserCreationForm):
             user.save()
             UserProfile.objects.get_or_create(user=user)
         return user
+
+
+class UniqueEmailUserCreationForm(UserCreationForm):
+    """Admin add-user form with case-insensitive email validation."""
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username", "email")
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip().lower()
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError(
+                "A user with that email address already exists."
+            )
+        return email
+
+
+class UniqueEmailUserChangeForm(UserChangeForm):
+    """Admin change-user form with case-insensitive email validation."""
+
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = "__all__"
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip().lower()
+        duplicates = User.objects.filter(email__iexact=email)
+        if self.instance.pk:
+            duplicates = duplicates.exclude(pk=self.instance.pk)
+        if email and duplicates.exists():
+            raise forms.ValidationError(
+                "A user with that email address already exists."
+            )
+        return email
 
 
 class LoginForm(AuthenticationForm):
@@ -88,4 +128,29 @@ class AvatarForm(forms.ModelForm):
                 raise forms.ValidationError("Image must be 2 MB or smaller.")
             if avatar.content_type not in {"image/png", "image/jpeg"}:
                 raise forms.ValidationError("Only PNG or JPEG images are allowed.")
+            try:
+                image = Image.open(avatar)
+                image.verify()
+                avatar.seek(0)
+                image = Image.open(avatar)
+                image_format = image.format
+                width, height = image.size
+            except (
+                UnidentifiedImageError,
+                Image.DecompressionBombError,
+                OSError,
+                ValueError,
+            ):
+                raise forms.ValidationError(
+                    "Upload a valid PNG or JPEG image."
+                )
+            finally:
+                try:
+                    avatar.seek(0)
+                except (OSError, ValueError):
+                    pass
+            if image_format not in {"PNG", "JPEG"}:
+                raise forms.ValidationError("Only PNG or JPEG images are allowed.")
+            if width * height > 20_000_000:
+                raise forms.ValidationError("Image dimensions are too large.")
         return avatar

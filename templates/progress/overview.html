@@ -23,17 +23,17 @@
   </div>
   <div class="stat">
     <span class="icon" style="background:var(--accent-soft);color:var(--accent);">{% include "includes/svg.html" with name="brain" %}</span>
-    <div class="value">{{ user.quiz_attempts.count }}</div>
+    <div class="value">{{ quiz_attempt_count }}</div>
     <div class="label">Quiz attempts</div>
   </div>
   <div class="stat">
     <span class="icon">{% include "includes/svg.html" with name="shield-alert" %}</span>
-    <div class="value">{{ user.scenario_attempts.count }}</div>
+    <div class="value">{{ scenario_attempt_count }}</div>
     <div class="label">Scenarios completed</div>
   </div>
   <div class="stat">
     <span class="icon" style="background:var(--warning-soft);color:var(--warning);">{% include "includes/svg.html" with name="award" %}</span>
-    <div class="value">{{ user.achievements.count }}</div>
+    <div class="value">{{ achievement_count }}</div>
     <div class="label">Achievements</div>
   </div>
 </div>

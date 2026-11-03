@@ -51,7 +51,7 @@
         <p class="text-small text-muted">{{ scenario.description|truncatechars:120 }}</p>
         <div class="module-meta">
           <span class="badge badge-{% if scenario.difficulty == 'beginner' %}green{% elif scenario.difficulty == 'intermediate' %}amber{% else %}red{% endif %}">{{ scenario.get_difficulty_display }}</span>
-          <span>{% include "includes/svg.html" with name="layers" %}{{ scenario.real_flags.count }} red flags</span>
+          <span>{% include "includes/svg.html" with name="layers" %}{{ scenario.real_flag_count }} red flags</span>
         </div>
       </a>
     {% endfor %}

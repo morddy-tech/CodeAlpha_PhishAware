@@ -1,5 +1,9 @@
-Django>=6.0,<7.0
+# Runtime dependencies for PhishAware.
+# Requires Python >= 3.12. CI targets Python 3.13 and Django 6.1.
+Django>=6.0,<6.2
+Pillow>=10.0
 python-dotenv>=1.0
 whitenoise>=6.0
 gunicorn>=21.0
 psycopg[binary]>=3.2
+redis>=5.0

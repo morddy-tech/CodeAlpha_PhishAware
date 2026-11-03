@@ -1,3 +1,4 @@
+import hashlib
 import logging
 
 from django.contrib import messages
@@ -14,9 +15,24 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
 from accounts.forms import AvatarForm, LoginForm, ProfileForm, RegisterForm
-from core.decorators import rate_limit
+from accounts.models import UserProfile
+from core.decorators import client_ip, rate_limit
 
 logger = logging.getLogger("security")
+
+
+def _login_identifier_keys(request):
+    """Return a per-identifier rate-limit bucket for login attempts.
+
+    The IP bucket is applied separately with a higher threshold so one noisy
+    user does not lock out everyone behind the same NAT.
+    """
+    identifier = (request.POST.get("username") or "").strip().lower()
+    if not identifier:
+        return [f"ratelimit:login:anonymous:{client_ip(request)}"]
+    digest = hashlib.sha256(identifier.encode("utf-8")).hexdigest()[:16]
+    return [f"ratelimit:login:id:{digest}"]
+
 
 
 class PhishAwareLoginView(LoginView):
@@ -24,7 +40,14 @@ class PhishAwareLoginView(LoginView):
     authentication_form = LoginForm
     redirect_authenticated_user = True
 
-    @rate_limit("login", attempts=5, window=300, lockout=900)
+    @rate_limit("login_ip", attempts=50, window=300, lockout=900)
+    @rate_limit(
+        "login",
+        attempts=5,
+        window=300,
+        lockout=900,
+        key_func=_login_identifier_keys,
+    )
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -34,23 +57,21 @@ class PhishAwareLoginView(LoginView):
         auth_login(self.request, user)
         if not remember:
             self.request.session.set_expiry(0)
-        logger.info("Login success: user=%s", user.username)
+        logger.info("Login success: user_id=%s", user.pk)
         messages.success(self.request, f"Welcome back, {user.get_full_name() or user.username}!")
         return redirect(self.get_success_url())
 
     def form_invalid(self, form):
-        logger.warning(
-            "Login failure: identifier=%s from %s",
-            form.data.get("username", ""),
-            self.request.META.get("REMOTE_ADDR", "unknown"),
-        )
+        identifier = (form.data.get("username") or "").strip().lower()
+        identifier_hash = hashlib.sha256(identifier.encode("utf-8")).hexdigest()[:12]
+        logger.warning("Login failure: identifier_hash=%s", identifier_hash)
         return super().form_invalid(form)
 
 
 class PhishAwareLogoutView(LogoutView):
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            logger.info("Logout: user=%s", request.user.username)
+            logger.info("Logout: user_id=%s", request.user.pk)
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -63,7 +84,7 @@ def register_view(request):
         user = form.save()
         user.backend = "django.contrib.auth.backends.ModelBackend"
         auth_login(request, user)
-        logger.info("New registration: user=%s", user.username)
+        logger.info("New registration: user_id=%s", user.pk)
         messages.success(
             request,
             "Your account was created successfully. Welcome to PhishAware!",
@@ -74,7 +95,9 @@ def register_view(request):
 
 @login_required
 def profile_view(request):
-    profile = request.user.profile
+    # Profiles are created by a post_save signal, but keep this defensive so
+    # legacy or admin-created accounts can never trigger a 500 here.
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if request.method == "POST":
         form = ProfileForm(request.POST, instance=profile)
         if form.is_valid():
@@ -107,7 +130,8 @@ def change_password_view(request):
 @login_required
 def avatar_upload_view(request):
     if request.method == "POST":
-        form = AvatarForm(request.POST, request.FILES, instance=request.user.profile)
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        form = AvatarForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             messages.success(request, "Your avatar was updated.")

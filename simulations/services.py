@@ -88,6 +88,7 @@ def record_scenario_attempt(user, scenario, result):
         scenario=scenario,
         score=result["score"],
         identified_indicators=result["correct_detected"],
+        selected_indicator_ids=sorted(result["selected_ids"]),
         selected_response=result["response_option"],
         completed=True,
     )

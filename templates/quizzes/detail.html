@@ -19,7 +19,7 @@
   <div class="card" style="margin-bottom:var(--space-5);">
     <div class="grid grid-4">
       <div>
-        <div class="stat-value"><strong>{{ quiz.questions.count }}</strong></div>
+        <div class="stat-value"><strong>{{ quiz.question_count }}</strong></div>
         <div class="text-xs text-muted">Questions</div>
       </div>
       <div>
@@ -31,7 +31,7 @@
         <div class="text-xs text-muted">Time limit</div>
       </div>
       <div>
-        <div class="stat-value"><strong>{{ quiz.total_points }}</strong></div>
+        <div class="stat-value"><strong>{{ total_points }}</strong></div>
         <div class="text-xs text-muted">Total points</div>
       </div>
     </div>
@@ -56,7 +56,7 @@
             {% for attempt in attempts %}
               <tr>
                 <td>{{ attempt.started_at|date:"M d, Y H:i" }}</td>
-                <td>{{ attempt.score }}/{{ attempt.quiz.total_points }}</td>
+                <td>{{ attempt.score }}/{{ total_points }}</td>
                 <td>{{ attempt.percentage }}%</td>
                 <td>
                   <span class="badge {% if attempt.passed %}badge-green{% else %}badge-red{% endif %}">{{ attempt.passed|yesno:"Passed,Not passed" }}</span>

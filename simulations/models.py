@@ -189,6 +189,11 @@ class ScenarioAttempt(models.Model):
     )
     score = models.PositiveIntegerField(default=0)
     identified_indicators = models.PositiveIntegerField(default=0)
+    selected_indicator_ids = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="IDs of the clue options selected by the learner for feedback.",
+    )
     selected_response = models.ForeignKey(
         ScenarioResponseOption,
         on_delete=models.SET_NULL,

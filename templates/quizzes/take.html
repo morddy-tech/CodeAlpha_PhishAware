@@ -7,7 +7,7 @@
   <div class="flex-between" style="margin-bottom:var(--space-4);">
     <h1 class="mb-0" style="font-size:1.4rem;">{{ quiz.title }}</h1>
     {% if quiz.time_limit %}
-      <span class="badge badge-red" id="quiz-timer" data-seconds="{{ quiz.time_limit }}">{% include "includes/svg.html" with name="clock" %} --:--</span>
+      <span class="badge badge-red" id="quiz-timer" data-seconds="{{ remaining_seconds }}" aria-live="polite">{% include "includes/svg.html" with name="clock" %} --:--</span>
     {% endif %}
   </div>
 

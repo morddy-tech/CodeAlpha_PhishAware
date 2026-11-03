@@ -1,5 +1,7 @@
 """Simulation tests: scenario display, scoring, and credential safety."""
 
+import re
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -96,10 +98,14 @@ class SimulationTests(TestCase):
                 "response": self.parts["response"].id,
             },
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         attempt = ScenarioAttempt.objects.get(user=self.user, scenario=self.scenario)
         self.assertEqual(attempt.score, 100)
         self.assertEqual(attempt.identified_indicators, 1)
+        self.assertEqual(attempt.selected_indicator_ids, [self.parts["flag"].id])
+        feedback = self.client.get(response.url)
+        self.assertEqual(feedback.status_code, 200)
+        self.assertContains(feedback, "You correctly identified")
 
     def test_submission_requires_login(self):
         response = self.client.post(
@@ -128,7 +134,7 @@ class SimulationTests(TestCase):
                 "indicators": [],
             },
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         attempt = ScenarioAttempt.objects.get(user=self.user, scenario=website)
         self.assertEqual(attempt.score, 0)
         # Ensure the submitted dummy credentials were not persisted anywhere.
@@ -142,5 +148,74 @@ class SimulationTests(TestCase):
         self.assertFalse(
             Notification.objects.filter(message__icontains="SuperSecret").exists()
         )
-        content = response.content.decode()
+        feedback = self.client.get(response.url)
+        self.assertEqual(feedback.status_code, 200)
+        content = feedback.content.decode()
         self.assertNotIn("SuperSecret", content)
+
+    def test_website_scenario_inputs_are_not_form_controls(self):
+        """Rendered demo inputs must not be successful controls in the scoring form."""
+        from simulations.models import PhishingScenario
+
+        website = PhishingScenario.objects.create(
+            title="Fake Login Site",
+            scenario_type="website",
+            explanation="Do not enter real credentials.",
+            published=True,
+        )
+        response = self.client.get(
+            reverse("simulations:scenario_detail", kwargs={"pk": website.pk})
+        )
+        html = response.content.decode()
+        submitted_names = set(re.findall(r'<input[^>]*\bname="([^"]+)"', html))
+        self.assertNotIn("sim_username", submitted_names)
+        self.assertNotIn("sim_password", submitted_names)
+        self.assertIn("never submitted, stored, or transmitted", html)
+
+    def test_feedback_refresh_does_not_create_another_attempt(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("simulations:scenario_submit", kwargs={"pk": self.scenario.pk}),
+            {
+                "indicators": [self.parts["flag"].id],
+                "response": self.parts["response"].id,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.client.get(response.url)
+        self.client.get(response.url)
+        self.assertEqual(
+            ScenarioAttempt.objects.filter(
+                user=self.user, scenario=self.scenario
+            ).count(),
+            1,
+        )
+
+    def test_feedback_is_scoped_to_the_authenticated_user(self):
+        other = create_user("bob", "bob@example.com")
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("simulations:scenario_submit", kwargs={"pk": self.scenario.pk}),
+            {
+                "indicators": [self.parts["flag"].id],
+                "response": self.parts["response"].id,
+            },
+        )
+        attempt = ScenarioAttempt.objects.get(user=self.user, scenario=self.scenario)
+        self.client.force_login(other)
+        response = self.client.get(response.url)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(attempt.user, self.user)
+
+    def test_feedback_requires_login(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("simulations:scenario_submit", kwargs={"pk": self.scenario.pk}),
+            {
+                "indicators": [self.parts["flag"].id],
+                "response": self.parts["response"].id,
+            },
+        )
+        self.client.logout()
+        response = self.client.get(response.url)
+        self.assertIn(response.status_code, (302, 403))

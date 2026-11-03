@@ -8,6 +8,7 @@ env/
 
 # Django
 db.sqlite3
+*.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
@@ -16,6 +17,12 @@ logs/
 
 # Environment / secrets
 .env
+.env.*
+!.env.example
+local_settings.py
+*.pem
+*.key
+*.crt
 
 # Editors / OS
 .vscode/
@@ -24,7 +31,10 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Test / coverage
+# Test / coverage / tooling
 .coverage
+coverage.xml
 htmlcov/
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/

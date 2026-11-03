@@ -44,7 +44,7 @@
       <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_users' %}">View all users</a>
       <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_analytics' %}">View analytics</a>
       <a class="btn btn-secondary btn-block" href="{% url 'dashboard:admin_feedback' %}">Review feedback ({{ overview.feedback_count }})</a>
-      <a class="btn btn-secondary btn-block" href="/admin/">Open Django admin</a>
+      <a class="btn btn-secondary btn-block" href="{% url 'admin:index' %}">Open Django admin</a>
     </div>
     <hr class="divider">
     <p class="text-small text-muted mb-0">

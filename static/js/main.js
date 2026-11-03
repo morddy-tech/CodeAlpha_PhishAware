@@ -98,12 +98,25 @@
     var form = document.getElementById("quiz-form");
     if (!timerEl || !form) return;
     var total = parseInt(timerEl.getAttribute("data-seconds"), 10);
-    if (!total || total <= 0) return;
+    if (isNaN(total) || total < 0) return;
 
     function format(s) {
       var m = Math.floor(s / 60);
       var sec = s % 60;
       return m + ":" + (sec < 10 ? "0" : "") + sec;
+    }
+
+    var submitted = false;
+    function submitOnce() {
+      if (submitted) return;
+      submitted = true;
+      form.submit();
+    }
+
+    if (total <= 0) {
+      timerEl.textContent = format(0);
+      submitOnce();
+      return;
     }
 
     var end = Date.now() + total * 1000;
@@ -112,7 +125,7 @@
       timerEl.textContent = format(remaining);
       if (remaining <= 0) {
         clearInterval(interval);
-        form.submit();
+        submitOnce();
       }
     }, 1000);
   }

@@ -74,11 +74,12 @@ def total_training_progress(user):
     from training.models import TrainingModule
 
     modules = TrainingModule.objects.filter(published=True)
-    if not modules.exists():
+    module_count = modules.count()
+    if not module_count:
         return 0
     records = ModuleProgress.objects.filter(user=user, module__in=modules)
     totals = sum(record.progress_percentage for record in records)
-    return round(totals / modules.count())
+    return round(totals / module_count)
 
 
 def security_awareness_score(user):
@@ -92,9 +93,10 @@ def security_awareness_score(user):
     )
     quiz_avg = round(sum(attempts) / len(attempts)) if attempts else 0
 
-    scenarios_total = len(user.scenario_attempts.all())
     scenario_scores = list(user.scenario_attempts.values_list("score", flat=True))
-    scenario_avg = round(sum(scenario_scores) / scenarios_total) if scenarios_total else 0
+    scenario_avg = (
+        round(sum(scenario_scores) / len(scenario_scores)) if scenario_scores else 0
+    )
 
     score = round(
         (training_progress * 0.4) + (quiz_avg * 0.35) + (scenario_avg * 0.25)
@@ -102,8 +104,14 @@ def security_awareness_score(user):
     return min(score, 100)
 
 
-def create_notification(user, title, message, notification_type=Notification.NotificationType.SYSTEM):
-    if not getattr(user.profile, "notification_preferences", True):
+def create_notification(
+    user, title, message, notification_type=Notification.NotificationType.SYSTEM
+):
+    """Create an in-app notification without assuming a profile already exists."""
+    from accounts.models import UserProfile
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    if not profile.notification_preferences:
         return None
     return Notification.objects.create(
         user=user,

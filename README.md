@@ -1,160 +1,152 @@
 # PhishAware
 
-**CodeAlpha Cybersecurity Internship — Task 2 (Phishing Awareness Training)**
+**CodeAlpha Cybersecurity Internship - Task 2 (Phishing Awareness Training)**
 
 > Learn to Detect. Learn to Defend.
 
-PhishAware is a professional, production-quality **defensive cybersecurity
-awareness training platform**. It teaches users to recognize phishing emails,
-fake websites, social engineering, smishing, and vishing through interactive
-modules, safe simulations, quizzes, scoring, and progress tracking.
+[![CI](https://github.com/morddy-tech/CodeAlpha_PhishAware/actions/workflows/ci.yml/badge.svg)](https://github.com/morddy-tech/CodeAlpha_PhishAware/actions/workflows/ci.yml)
 
-**This is an educational, defensive application. It cannot and does not
-conduct real phishing, collect real credentials, or attack anyone.**
+PhishAware is a defensive, educational phishing-awareness training platform. It
+teaches users to recognise phishing emails, fake websites, social engineering,
+smishing, and vishing through modules, safe simulations, quizzes, scoring, and
+progress tracking.
+
+**This is an educational, defensive application. It cannot and does not conduct
+real phishing, collect real credentials, or attack anyone.**
 
 ---
 
 ## Overview
 
-Phishing remains the #1 entry vector for breaches because it targets human
-trust. PhishAware builds that human defense with:
+Phishing remains one of the most common initial access vectors because it
+targets human trust. PhishAware builds human defence with:
 
 - Structured training modules and lessons
 - Safe, fictional phishing email and fake-website simulations
-- Social engineering scenario training with "what should you do?" decisions
+- Social-engineering scenarios with "what should you do?" decisions
 - Server-scored quizzes with explanations and retries
-- Progress tracking, achievements, notifications, and a security awareness score
-- A custom staff/admin dashboard with analytics
-
-## Objectives
-
-- Educate users about phishing, fake websites, and social engineering
-- Provide realistic but **completely safe** practice
-- Reinforce learning through quizzes and immediate feedback
-- Track progress and motivate with achievements
-- Deliver a professional, accessible, responsive experience
+- Progress tracking, achievements, notifications, and an awareness score
+- A staff/admin dashboard with analytics
 
 ## Features
 
 - **8 training modules / 32 lessons** covering phishing fundamentals, email
   phishing, fake websites, social engineering, smishing/vishing, BEC, incident
   response, and security habits
-- **8 interactive simulation scenarios** (email, fake website, SMS, phone,
-  social engineering) where learners click red flags and choose the right action
+- **8 interactive simulation scenarios** (email, fake website, SMS, phone, and
+  social engineering) where learners identify red flags and choose a response
 - **9 quizzes / 50 questions** with server-side scoring, passing thresholds,
-  explanations, and retry
+  explanations, retry support, and a best-attempt summary
 - **9 achievements** awarded automatically
 - **Security Awareness Score** combining training, quizzes, and simulations
-- **Custom admin dashboard**: overview, users, content, analytics, feedback
-- **Notifications**, feedback, search and filtering
-- **Light / dark / system** themes, responsive, accessible
-- **Rate limiting** on authentication endpoints
-- **Security headers**, CSRF protection, IDOR protection, hashed passwords
+- **Custom staff dashboard** with user management, content links, feedback
+  triage, and analytics
+- **Responsive, accessible UI** with dark/light/system themes and keyboard-friendly
+  navigation
+- **Defensive security controls** including CSRF, authorization checks,
+  rate-limited login and feedback, trusted-proxy support, CSP, secure cookies,
+  upload validation, and server-side quiz time enforcement
 
 ## Technology Stack
 
-| Layer      | Technology                          |
-|------------|-------------------------------------|
-| Backend    | Python 3, Django 6, Gunicorn (prod)  |
-| Database   | SQLite (dev) / PostgreSQL (prod)     |
-| Static     | Whitenoise (prod)                    |
-| Auth       | Django auth + custom email/username backend |
-| Frontend   | HTML5, CSS3 (custom design system), vanilla JS |
-| Icons      | Inline Lucide-style SVG set          |
-| Charts     | Pure CSS bar charts (no dependencies) |
-
-No frontend frameworks or CDNs are required — everything is self-contained.
+| Layer | Technology |
+|-------|------------|
+| Language | Python 3.12+ (CI targets 3.13) |
+| Framework | Django 6.1.x (`>=6.0,<6.2`) |
+| Database | SQLite for local development, PostgreSQL for production |
+| Static files | WhiteNoise + `collectstatic` |
+| Cache / rate limits | LocMemCache locally, Redis when `REDIS_URL` is set |
+| Images | Pillow |
+| WSGI server | Gunicorn |
+| Frontend | Django templates, vanilla JavaScript, custom CSS |
 
 ## Architecture
 
 ```text
-CodeAlpha_PhishAware/
-├── manage.py
-├── config/                  # project settings, urls, asgi/wsgi
-├── accounts/                # auth, profiles, password reset
-├── training/                # modules & lessons
-├── simulations/             # phishing scenarios, indicators, attempts
-├── quizzes/                 # quiz engine, attempts, user answers
-├── progress/                # progress, achievements, notifications
-├── dashboard/               # user dashboard + admin dashboard
-├── core/                    # landing, about, tips, feedback, errors, middleware
-├── templates/               # Django templates
-├── static/                  # CSS, JS, images
-├── media/                   # uploads (avatars)
-├── tests/                   # automated test suite
-├── requirements.txt
-├── .env.example
-├── README.md
-└── SECURITY.md
+config/         Django project settings, URLs, WSGI entry point
+accounts/       Authentication, registration, profiles, avatars, security backend
+training/       Training modules and lessons
+simulations/    Scenario content, scoring, and post-submit feedback
+quizzes/        Quiz engine, attempts, answers, and results
+progress/       Completion tracking, achievements, notifications, awareness score
+dashboard/      Learner dashboard and staff/admin analytics
+core/           Landing page, feedback, error pages, security middleware/decorators
+templates/      Shared and app-specific templates
+static/         CSS, JavaScript, images, and SVGs
+tests/          Regression and security test suite
 ```
 
 ## Database
 
-Key models (Django ORM, all in `*/models.py`):
+The main models are:
 
-- `User` (Django auth) + `UserProfile` (accounts)
-- `TrainingModule`, `TrainingLesson` (training)
-- `PhishingScenario`, `ScenarioIndicator`, `ScenarioResponseOption`,
-  `ScenarioAttempt` (simulations)
-- `Quiz`, `Question`, `AnswerOption`, `QuizAttempt`, `UserAnswer` (quizzes)
-- `ModuleProgress`, `LessonCompletion`, `Achievement`, `UserAchievement`,
-  `Notification` (progress)
-- `Feedback` (core)
+- `accounts.UserProfile` (one-to-one with Django's user model; automatic
+  creation via a `post_save` signal plus a backfill migration)
+- `training.TrainingModule`, `training.TrainingLesson`
+- `simulations.PhishingScenario`, `ScenarioIndicator`, `ScenarioResponse`,
+  `ScenarioAttempt`
+- `quizzes.Quiz`, `Question`, `Answer`, `QuizAttempt`, `UserAnswer`
+- `progress.ModuleProgress`, `LessonCompletion`, `Achievement`,
+  `UserAchievement`, `Notification`
+- `core.Feedback`
 
-Design rules applied: foreign keys, indexes, unique constraints, slugs,
-choices, timestamps, duplicate-progress/achievement prevention, transactions,
-`select_related`/`prefetch_related` where useful.
+The custom user-facing identity remains Django's `auth.User`. Non-empty emails
+are protected by a case-insensitive unique index, and
+`accounts.backends.EmailOrUsernameModelBackend` accepts either a username or an
+email at login.
 
 ## Security Controls
 
-- CSRF protection enabled on all forms
-- Server-side quiz/simulation scoring (clients cannot set scores)
-- IDOR protection: every user-scoped lookup filters by the requesting user
-- Staff-only admin dashboard enforced server-side
-- Session cookies `HttpOnly` + `SameSite=Lax`; secure cookies off in DEBUG
-- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
-  plus HSTS/SSL settings available for production
-- Password hashing via Django defaults (PBKDF2/Argon2)
-- Application-level rate limiting on login/registration/password reset
-- Input validation via Django forms; upload validation (type + size)
-- Custom 400/403/404/500 pages — no stack traces in production
-- Logging for auth events and permission failures (no secrets logged)
-- Simulated login fields never store or transmit anything
+| Boundary | Control |
+|----------|---------|
+| Authentication | Django password hashing, session cookies with `HttpOnly` and `SameSite=Lax`, optional secure cookies via `USE_HTTPS`, login rate limiting |
+| Authorization | Server-side `login_required` and staff checks; attempts and results are scoped to the authenticated user |
+| CSRF | Enabled for all state-changing forms; no view disables it |
+| Input validation | Django forms, image content validation with Pillow, feedback length limits |
+| Output safety | Django template auto-escaping; no user-controlled HTML is rendered unescaped |
+| Uploads | PNG/JPEG only, 2 MB maximum, dimensions checked, generated filenames |
+| Quiz integrity | Scores and timers are authoritative on the server; attempt start time comes from the database |
+| Simulation privacy | Demo username/password fields are not successful form controls; submissions use Post-Redirect-Get |
+| Rate limits | Cache-backed limits return HTTP 429 with `Retry-After` |
+| Proxy headers | `X-Forwarded-*` is trusted only when `TRUST_PROXY_HEADERS=True` |
+| Headers | CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` |
+| Secrets | Environment variables only; `.env` is ignored and never committed |
 
 ## Installation
 
-Requirements: Python 3.10+ (developed on 3.14), pip.
+### 1. Clone and enter the project
 
 ```bash
-# 1. Clone and enter the project
 git clone https://github.com/morddy-tech/CodeAlpha_PhishAware.git
 cd CodeAlpha_PhishAware
+```
 
-# 2. (Recommended) create a virtual environment
+### 2. Create a virtual environment
+
+```bash
+# Windows
 python -m venv .venv
-# Windows:
 .venv\Scripts\activate
-# macOS/Linux:
-# source .venv/bin/activate
 
-# 3. Install dependencies
+# macOS / Linux
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## Environment Variables
+Python 3.12 or newer is required by Django 6.x. CI uses Python 3.13 (see
+`.python-version`).
 
-Copy `.env.example` to `.env` and edit:
+### 4. Create `.env`
 
 ```bash
-cp .env.example .env   # Windows:  copy .env.example .env
-```
-
-The most important variables:
-
-```text
-SECRET_KEY=            # generate one (see below)
-DEBUG=True             # must be False in production
-ALLOWED_HOSTS=localhost,127.0.0.1
+cp .env.example .env
 ```
 
 Generate a secret key:
@@ -163,204 +155,266 @@ Generate a secret key:
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-**Never commit your `.env` file.**
+Put it in `.env` as `SECRET_KEY=...` and keep `DEBUG=True` for local work.
 
-## Database Setup
+### 5. Apply migrations
 
 ```bash
 python manage.py migrate
 ```
 
-SQLite is used by default. For PostgreSQL (production), set
-`DATABASE_URL` in `.env`:
+The migrations create the schema, backfill profiles for existing users, and add
+the case-insensitive email index. If your database already contains duplicate
+emails, the email migration stops with an actionable error. Audit first:
 
-```text
-DATABASE_URL=postgres://user:password@host:5432/phishaware
+```bash
+python manage.py audit_duplicate_emails
 ```
 
-The `DATABASES` block switches automatically when the URL is present.
+The command is read-only; resolve duplicates manually, then migrate.
 
-## Creating Admin User
+### 6. Create an admin user
 
 ```bash
 python manage.py createsuperuser
 ```
 
-There is **no default admin password** — you create the account yourself, as
-you should.
-
-## Seeding Training Content
+### 7. Seed training content
 
 ```bash
 python manage.py seed_training
 ```
 
-The command is idempotent — running it twice creates no duplicates. It seeds
-the 8 modules, 32 lessons, 8 scenarios, 9 quizzes, and 9 achievements.
+This loads the modules, lessons, scenarios, questions, and achievements used by the application.
 
-## Running Tests
+### 8. Run tests
 
 ```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test
 ```
 
-The suite (72 tests) covers authentication, authorization/IDOR, training,
-quizzes, simulations, security headers/CSRF/rate limiting, and model
-constraints.
-
-## Running Development Server
+### 9. Run the development server
 
 ```bash
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000 in your browser.
+Open `http://127.0.0.1:8000/`.
 
-> **Styling looks broken / "only HTML"?** Keep `DEBUG=True` in `.env` for local
-> development (Django's dev server serves CSS/JS automatically in DEBUG mode),
-> or keep `SERVE_STATIC_FILES=True` and it will also work with `DEBUG=False`.
-> Never set both `DEBUG=False` and `SERVE_STATIC_FILES=False` on a local
-> machine unless you have run `python manage.py collectstatic` and configured a
-> real web server to serve `staticfiles/`.
+## Environment Variables
 
-## Deployment (Live Use)
+| Variable | Purpose | Local default |
+|----------|---------|---------------|
+| `SECRET_KEY` | Django signing key; required | — |
+| `DEBUG` | Debug mode; never `True` in production | `False` |
+| `ALLOWED_HOSTS` | Comma-separated host names | `localhost,127.0.0.1` |
+| `CSRF_TRUSTED_ORIGINS` | Comma-separated HTTPS origins | empty |
+| `DATABASE_URL` | PostgreSQL URL; SQLite when empty | empty |
+| `DB_CONN_MAX_AGE` | Persistent DB connection age | `60` |
+| `USE_HTTPS` | Secure cookies and HTTPS defaults | `False` |
+| `SECURE_SSL_REDIRECT` | Redirect HTTP to HTTPS | `False` |
+| `SECURE_HSTS_SECONDS` | HSTS lifetime; `0` disables | `0` |
+| `TRUST_PROXY_HEADERS` | Trust `X-Forwarded-*` from a sanitising proxy | `False` |
+| `REDIS_URL` | Shared cache for rate limits | empty (LocMem) |
+| `RATE_LIMIT_ATTEMPTS` | Attempts per window | `5` |
+| `RATE_LIMIT_WINDOW_SECONDS` | Rate-limit window | `300` |
+| `RATE_LIMIT_LOCKOUT_SECONDS` | Lockout duration | `900` |
+| `QUIZ_CLOCK_TOLERANCE_SECONDS` | Server clock/network grace for quiz submission | `5` |
+| `SERVE_STATIC_FILES` | Serve static files through Django | `DEBUG` |
+| `SERVE_MEDIA_FILES` | Serve user media through Django | `DEBUG` |
+| `LOG_TO_STDOUT` | Log to stdout instead of rotating files | `not DEBUG` |
+| `EMAIL_BACKEND` | Email backend | console backend |
 
-The project is deployment-ready: `whitenoise` serves static files, `gunicorn`
-runs the WSGI app (see `Procfile`), and the database switches to PostgreSQL
-via `DATABASE_URL`.
+See `.env.example` for a copyable template.
 
-### Environment variables (production)
+## Production Deployment
+
+### Build and start
+
+```bash
+pip install -r requirements.txt
+python manage.py collectstatic --noinput
+python manage.py migrate
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+```
+
+The included `Procfile` uses the same Gunicorn command.
+
+### Production environment example
 
 ```text
 DEBUG=False
-SECRET_KEY=<a fresh, random key>
-ALLOWED_HOSTS=your-app-domain.com,www.your-app-domain.com
-CSRF_TRUSTED_ORIGINS=https://your-app-domain.com
+SECRET_KEY=<fresh random value>
+ALLOWED_HOSTS=your-domain.example
+CSRF_TRUSTED_ORIGINS=https://your-domain.example
 DATABASE_URL=postgres://user:password@host:5432/phishaware
+DB_CONN_MAX_AGE=60
+USE_HTTPS=True
+SECURE_SSL_REDIRECT=True
+SECURE_HSTS_SECONDS=31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS=True
+SECURE_HSTS_PRELOAD=False
+TRUST_PROXY_HEADERS=False
+REDIS_URL=redis://cache-host:6379/1
 SERVE_STATIC_FILES=False
+SERVE_MEDIA_FILES=False
+LOG_TO_STDOUT=True
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=...            # your mail provider
+EMAIL_HOST=...
 EMAIL_PORT=587
 EMAIL_HOST_USER=...
 EMAIL_HOST_PASSWORD=...
 EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=noreply@your-domain.com
-SECURE_SSL_REDIRECT=True
-SECURE_HSTS_SECONDS=31536000
+DEFAULT_FROM_EMAIL=noreply@your-domain.example
 ```
 
-### On Render (recommended — free tier available)
+Set `TRUST_PROXY_HEADERS=True` **only** when a trusted edge proxy overwrites
+client-supplied `X-Forwarded-For` / `X-Forwarded-Proto` headers. Django must not
+be directly exposed to the internet when this is enabled.
 
-1. Push the repository to GitHub (see "GitHub" below).
-2. In Render, create a **New → Web Service** and connect the repo.
-3. Build command: `pip install -r requirements.txt && python manage.py collectstatic --noinput`
-4. Start command: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`
-5. Add a PostgreSQL database in Render and copy its URL into `DATABASE_URL`.
-6. Set the remaining environment variables above.
-7. Deploy, then run one-time commands in the Render shell:
-   ```bash
-   python manage.py migrate
-   python manage.py seed_training
-   python manage.py createsuperuser
-   ```
+### Static and media files
 
-### On Railway / Heroku
+- WhiteNoise serves collected static files from `STATIC_ROOT` (`staticfiles/`).
+- User media (`media/`, including avatars) is never served by WhiteNoise in
+  production. Serve it from Nginx, a CDN, or an object-storage service.
 
-- Same build and start commands (the `Procfile` is used by Heroku and Railway).
-- Railway: add the PostgreSQL plugin, set `DATABASE_URL` automatically.
-- Run `migrate`, `seed_training`, and `createsuperuser` once after deploy.
+Example Nginx location:
 
-### On PythonAnywhere / a VPS
+```nginx
+location /media/ {
+    alias /srv/phishaware/media/;
+    add_header X-Content-Type-Options nosniff;
+    location ~* \.(php|phtml|py|sh)$ {
+        deny all;
+    }
+}
+```
+
+For object storage, place the bucket/CDN in front of `MEDIA_ROOT` and keep
+`SERVE_MEDIA_FILES=False`. Never expose the media directory for script
+execution.
+
+### Database and cache
+
+- PostgreSQL is recommended for production. SQLite is suitable for local
+  development and small single-user demonstrations only.
+- Set `REDIS_URL` whenever more than one Gunicorn worker handles requests.
+  Otherwise each worker has an independent rate-limit counter.
+- The project supports PostgreSQL via `DATABASE_URL`; `sslmode=require` can be
+  supplied as a query parameter, for example
+  `postgres://user:pass@host/db?sslmode=require`.
+
+### Operations checklist
 
 ```bash
-python manage.py collectstatic --noinput   # served by Nginx/Apache from staticfiles/
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
+python manage.py check
+python manage.py check --deploy
+python manage.py makemigrations --check --dry-run
+python manage.py migrate
+python manage.py collectstatic --noinput
+python manage.py audit_duplicate_emails
+python manage.py test
 ```
 
-### Before going live — checklist
+Also:
 
-- [ ] `DEBUG=False` and a fresh `SECRET_KEY`
-- [ ] `ALLOWED_HOSTS` + `CSRF_TRUSTED_ORIGINS` set to your real domain
-- [ ] `SERVE_STATIC_FILES=False` and `collectstatic` ran
-- [ ] PostgreSQL configured via `DATABASE_URL`
-- [ ] Real SMTP credentials configured
-- [ ] `python manage.py check --deploy` shows no blocking warnings
-- [ ] `migrate`, `seed_training`, `createsuperuser` executed
+- Back up PostgreSQL and `media/` together.
+- Keep `.env`, database files, logs, and user media out of Git.
+- Rotate `SECRET_KEY` only with a planned session/password-reset impact.
+- Use a TLS-terminating proxy and set `USE_HTTPS=True`.
+- Review `logs/` access if file logging is enabled; production defaults to
+  stdout via `LOG_TO_STDOUT=True`.
+- Run the app with a non-root user and a read-only filesystem except for media
+  and log paths.
 
-## GitHub
+### Render / Railway / Heroku
 
-The repository is ready to push. Before committing:
+1. Connect the repository.
+2. Build: `pip install -r requirements.txt && python manage.py collectstatic --noinput`
+3. Start: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`
+4. Add PostgreSQL and Redis, then set the environment variables above.
+5. Run one-time commands: `migrate`, `seed_training`, `createsuperuser`.
 
-- Verify `.env` is **not** tracked (it is in `.gitignore`).
-- Generate a fresh `SECRET_KEY` for any shared environment.
-- Replace the placeholder GitHub URL in `core/context_processors.py`
-  (`GITHUB_URL`) and the Author section of this README with your profile.
+## Project Structure Notes
+
+- `accounts/signals.py` creates a profile for every user, including users made
+  with `createsuperuser` or Django admin. `accounts/migrations/0002` backfills
+  profiles for existing accounts.
+- `quizzes/views.py` binds an attempt to the session and enforces the time limit
+  from `QuizAttempt.started_at`, not from a browser timer.
+- `simulations/views.py` uses Post-Redirect-Get so refreshing feedback cannot
+  create duplicate attempts or re-score a scenario.
+- `core/decorators.py` is a small cache-backed rate limiter used for login,
+  registration, and feedback.
+
+## Testing
+
+The suite covers authentication, authorization, quiz scoring and timing,
+simulation privacy, dashboard analytics, uploads, rate limiting, CSRF, headers,
+and error pages.
 
 ```bash
-git init
-git add .
-git commit -m "PhishAware: phishing awareness training platform (CodeAlpha Task 2)"
-git branch -M main
-git remote add origin https://github.com/<your-username>/CodeAlpha_PhishAware.git
-git push -u origin main
+python manage.py test -v 2
 ```
 
-## Project Screenshots
+Run the same commands in CI on every push and pull request.
 
-| Page | Screenshot |
-|------|------------|
-| Landing page | _(add screenshot here)_ |
-| Training modules | _(add screenshot here)_ |
-| Phishing email simulation | _(add screenshot here)_ |
-| Quiz result | _(add screenshot here)_ |
-| User dashboard | _(add screenshot here)_ |
-| Admin analytics | _(add screenshot here)_ |
+## Known Limitations
 
-To add a screenshot: capture the page, save it in `docs/screenshots/`, and
-insert `![alt text](docs/screenshots/name.png)` in the table above.
+- SQLite is not a production database for concurrent multi-worker deployments.
+- LocMemCache is per-process; production rate limiting requires Redis or another
+  shared cache.
+- The default avatar storage is local `MEDIA_ROOT`; production should use a
+  proper media server or object storage.
+- Log files are rotated locally when `LOG_TO_STDOUT=False`; container platforms
+  should collect stdout instead.
+- No real screenshots are committed. Add genuine screenshots of the running UI
+  if you want them in the README; do not use fabricated images.
+- Email uniqueness is enforced for non-empty addresses with a partial index
+  supported by SQLite and PostgreSQL.
 
 ## Security Disclaimer
 
-PhishAware is **educational and defensive only**. All simulations use clearly
-fictional organizations and domains (e.g. `example.com`). Simulated login
-pages are decorative: any text typed into them is discarded instantly and is
-**never stored, logged, or transmitted**. The platform does not send email,
-does not contact external targets, and cannot be used to conduct real
-phishing.
+PhishAware is for education and defensive awareness only. All organisations,
+domains, messages, and scenarios are fictional. The application does not send
+email, contact third parties, collect real credentials, or perform any
+offensive action.
+
+Do not use this project to conduct real phishing, harvest credentials, attack
+systems, or impersonate real people or organisations.
 
 ## Ethical Use
 
-- Do **not** use this project or its content to perform real phishing,
-  credential harvesting, or social engineering against real people.
-- This software is provided for **security awareness and education**.
-- Never repurpose the simulated login/simulation features into a real
-  credential-collection system.
+Use this project only where you have permission to train users, and only with
+fictional content. Follow your organisation's policies and applicable law. See
+`SECURITY.md` for vulnerability reporting and disclosure expectations.
 
 ## CodeAlpha Task Mapping
 
-| Requirement                        | Implementation                                   |
-|------------------------------------|--------------------------------------------------|
-| Phishing education                 | Training modules & lessons                        |
-| Fake website recognition           | Website simulation scenario                       |
-| Social engineering education       | Scenario training with response decisions         |
-| Best practices                     | Security tips page + security habits module       |
-| Real-world examples                | Realistic (fictional) scenario content            |
-| Interactive quizzes                | Server-scored quiz engine with explanations       |
-| Progress tracking                  | Module progress, achievements, awareness score    |
+| Requirement | Implementation |
+|-------------|----------------|
+| Phishing awareness content | Training modules, lessons, simulations, quizzes |
+| Interactive learning | Red-flag selection, response choices, explanations |
+| Progress tracking | Module/lesson completion, attempts, achievements, awareness score |
+| Safe demonstrations | Fictional content and non-submitting demo credential fields |
+| Professional presentation | Responsive UI, themes, accessibility, admin analytics |
+| Security-conscious engineering | Server-side scoring/timing, authorization, rate limits, CSP, upload validation |
 
 ## Future Improvements
 
-- Scheduled email reminders (e.g. via Celery + a mail provider)
-- Export learner analytics for admins (CSV)
-- Gamified leaderboards and streaks
-- Admin content editor UI (beyond Django admin)
-- API endpoints with Django REST Framework for LMS integration
-- Localization (i18n) support
-- Optional organization/group management for team training
+- Add genuine UI screenshots and a short demo video.
+- Add optional object-storage backend for media.
+- Add email verification and MFA for staff accounts.
+- Add richer cohort reporting and CSV export for administrators.
+- Add background jobs for notification delivery and reminder emails.
 
 ## Author
 
 **Ifedayo Matthew**
+GitHub: [morddy-tech](https://github.com/morddy-tech)
 
-- GitHub: [your-github-username](https://github.com/morddy-tech/)
-- Project: [CodeAlpha_PhishAware](https://github.com/morddy-tech/CodeAlpha_PhishAware)
+## License
+
+MIT License. See `LICENSE`.

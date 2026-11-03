@@ -4,6 +4,8 @@ from django.db import models
 
 def avatar_upload_path(instance, filename):
     extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else "png"
+    if extension not in {"png", "jpg", "jpeg"}:
+        extension = "png"
     return f"avatars/user_{instance.user_id}.{extension}"
 
 

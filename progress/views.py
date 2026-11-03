@@ -23,6 +23,9 @@ def progress_overview(request):
         {
             "progress_records": modules,
             "completed_count": completed.count(),
+            "quiz_attempt_count": request.user.quiz_attempts.count(),
+            "scenario_attempt_count": request.user.scenario_attempts.count(),
+            "achievement_count": request.user.achievements.count(),
             "total_progress": total_training_progress(request.user),
             "awareness_score": security_awareness_score(request.user),
         },
