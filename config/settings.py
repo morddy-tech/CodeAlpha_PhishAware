@@ -7,6 +7,7 @@ https://docs.djangoproject.com/en/stable/howto/deployment/checklist/
 """
 
 import os
+import sys
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -34,6 +35,7 @@ def env_list(name: str, default: str = "") -> list[str]:
 # ---------------------------------------------------------------------------
 
 DEBUG = env_bool("DEBUG", default=False)
+RUNNING_TESTS = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
@@ -187,7 +189,11 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if RUNNING_TESTS
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 
