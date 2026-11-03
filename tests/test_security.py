@@ -1,5 +1,6 @@
 """Security tests: CSRF, headers, XSS-safety, rate limiting, error pages."""
 
+from django.conf import settings
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
@@ -140,6 +141,14 @@ class DisallowedHostTests(TestCase):
         # Allowed hosts are restricted, so an unknown host is rejected.
         response = Client(HTTP_HOST="evil.example.net").get("/")
         self.assertEqual(response.status_code, 400)
+
+
+class StaticFilesStorageTests(TestCase):
+    def test_tests_use_non_manifest_staticfiles_storage(self):
+        self.assertEqual(
+            settings.STORAGES["staticfiles"]["BACKEND"],
+            "django.contrib.staticfiles.storage.StaticFilesStorage",
+        )
 
 
 class SeededContentTests(TestCase):
